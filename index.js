@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 const axios = require('axios');
-var D = require('dumpjs');
+const D = require('dumpjs');
 require('dotenv').config();
 
 client.once('ready', () => {
