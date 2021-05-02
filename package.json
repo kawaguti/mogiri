@@ -1,0 +1,25 @@
+{
+  "name": "mogiri",
+  "version": "1.0.0",
+  "description": "Conference reception bot for Discord with Eventbrite",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kawaguti/mogiri.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kawaguti/mogiri/issues"
+  },
+  "homepage": "https://github.com/kawaguti/mogiri#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "discord.js": "^12.5.3",
+    "dotenv": "^8.2.0",
+    "dumpjs": "^0.2.1"
+  }
+}

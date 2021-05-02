@@ -1,2 +1,3 @@
 # mogiri
-Conference  reception bot for Discord with Eventbrite
+
+Conference reception bot for Discord with Eventbrite
