@@ -77,11 +77,11 @@ client.on('message', message => {
         + process.env.EVENTBRITE_PRIVATE_KEY)
         .then(function (response) {
           console.log(D.dump(response.data.attendees));
+
           fs.appendFileSync('orders_multiattendees.log', "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
           order_attendees[eventbrite_order_id].add(message.author.username);
-
           order_limits[eventbrite_order_id] = response.data.attendees.length;
-          message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
+          message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id].size + "名が登録されています。");
 
         })
         .catch(function (error) {
