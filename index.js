@@ -45,11 +45,11 @@ client.on('message', message => {
 
   const re = /(\d{10})/;
   if ( re.test(message.content) ) {
-    const eventbrite_order_id = RegExp.lastMatch;
+    const eventbrite_order_id = RegExp.lastMatch.toString();
 
     message.reply(eventbrite_order_id + "は" 
-                + order_limits[eventbrite_order_id.toString()] + "名分のうち、" 
-                + order_attendees[eventbrite_order_id.toString()].size + "名が登録済みです。");
+                + order_limits[eventbrite_order_id] + "名分のうち、" 
+                + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
   
     axios.get('https://www.eventbriteapi.com/v3/orders/' 
           + eventbrite_order_id
@@ -72,8 +72,8 @@ client.on('message', message => {
           fs.appendFileSync('orders_multiattendees.log', "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
           order_attendees[eventbrite_order_id].add(message.author.username);
 
-          order_limits[eventbrite_order_id.toString()] = response.data.attendees.length;
-          message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id.toString()].size + "名が登録済みです。");
+          order_limits[eventbrite_order_id] = response.data.attendees.length;
+          message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
 
         })
         .catch(function (error) {
