@@ -17,8 +17,7 @@ DISCORD_PRIVATE_KEY={Your Discord Private Key}
 DISCORD_ROLE_FOR_VALIDATED_USER={Discord Role Name for Valid User}
 ```
 
-To get your Eventbrite private key : https://www.eventbrite.com/platform/api-keys
-To get your Discord private key : TBD
+To get your Eventbrite private key : <https://www.eventbrite.com/platform/api-keys>
 
 To register your bot to your server, please see...
 
