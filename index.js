@@ -35,6 +35,25 @@ client.on('message', message => {
 
       if (response.data.status === "placed") {
         message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
+
+        axios.get('https://www.eventbriteapi.com/v3/orders/' 
+        + eventbrite_order_id
+        + '/attendees/?token=' 
+        + process.env.EVENTBRITE_PRIVATE_KEY)
+        .then(function (response) {
+          console.log(D.dump(response.data.attendees));
+          if (response.data.attendees.length > 1) {
+            message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のチケットを含みます。");
+            fs.appendFileSync('orders_multiattendees.log', "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+          if (error.response.status == 400) {
+            message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。");
+          }
+        })    
+
       } else {
         if ( typeof (response.data.status) == "string" ) {
           message.reply(eventbrite_order_id + "は現在、有効ではありません。 status=" + response.data.status);
