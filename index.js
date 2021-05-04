@@ -27,8 +27,18 @@ client.on('message', message => {
           + process.env.EVENTBRITE_PRIVATE_KEY)
     .then(function (response) {
       console.log(response.status + " : " + response.data.name);
+      console.log(response.data.status);
       console.log(D.dump(response.data));
-      message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
+      if (response.data.status === "placed") {
+        message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
+      } else {
+        if ( typeof (response.data.status) == "string" ) {
+          message.reply(eventbrite_order_id + "は現在、有効ではありません。 status=" + response.data.status);
+        } else {
+          message.reply(eventbrite_order_id + "は現在、有効ではありません。");        
+        }
+        return;
+      }
 
       const role = message.guild.roles.cache.find(role => role.name === process.env.DISCORD_ROLE_FOR_VALIDATED_USER );
       if ( role ) {
