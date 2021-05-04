@@ -5,6 +5,26 @@ const D = require('dumpjs');
 require('dotenv').config();
 
 const fs = require('fs');
+let order_limits = {};
+let order_attendees = {};
+fs.readFile('orders_multiattendees.log', 'utf8', (err, data) => {
+  if (err) throw err;
+  console.log(data);
+  data.split('\r\n').forEach(line => {
+    if ( line != "") {
+      const order = line.split(', ');
+      console.log(D.dump(order));
+      const eventbrite_order_id = order[0].toString();
+      if (order_attendees[eventbrite_order_id] == undefined){
+        order_limits[eventbrite_order_id] = order[1];
+        order_attendees[eventbrite_order_id] = new Set();
+        order_attendees[eventbrite_order_id].add(order[2]);
+      } else {
+        order_attendees[eventbrite_order_id].add(order[2]);
+      }
+    }
+  });
+});
 
 client.once('ready', () => {
   console.log ('This bot is online!');
@@ -20,10 +40,17 @@ client.on('message', message => {
   console.log(message.content);
   console.log(message.author.username);
 
+  console.log("order_limits: " + D.dump(order_limits));
+  console.log("order_attendees: " + D.dump(order_attendees));
+
   const re = /(\d{10})/;
   if ( re.test(message.content) ) {
     const eventbrite_order_id = RegExp.lastMatch;
 
+    message.reply(eventbrite_order_id + "は" 
+                + order_limits[eventbrite_order_id.toString()] + "名分のうち、" 
+                + order_attendees[eventbrite_order_id.toString()].size + "名が登録済みです。");
+  
     axios.get('https://www.eventbriteapi.com/v3/orders/' 
           + eventbrite_order_id
           + '?token=' 
@@ -42,10 +69,12 @@ client.on('message', message => {
         + process.env.EVENTBRITE_PRIVATE_KEY)
         .then(function (response) {
           console.log(D.dump(response.data.attendees));
-          if (response.data.attendees.length > 1) {
-            message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のチケットを含みます。");
-            fs.appendFileSync('orders_multiattendees.log', "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
-          }
+          fs.appendFileSync('orders_multiattendees.log', "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
+          order_attendees[eventbrite_order_id].add(message.author.username);
+
+          order_limits[eventbrite_order_id.toString()] = response.data.attendees.length;
+          message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id.toString()].size + "名が登録済みです。");
+
         })
         .catch(function (error) {
           console.log(error);
