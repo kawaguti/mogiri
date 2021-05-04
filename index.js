@@ -4,6 +4,8 @@ const axios = require('axios');
 const D = require('dumpjs');
 require('dotenv').config();
 
+const fs = require('fs');
+
 client.once('ready', () => {
   console.log ('This bot is online!');
 })
@@ -16,6 +18,7 @@ client.on('message', message => {
     message.channel.send('児島だよ');
   }
   console.log(message.content);
+  console.log(message.author.username);
 
   const re = /(\d{10})/;
   if ( re.test(message.content) ) {
@@ -26,9 +29,10 @@ client.on('message', message => {
           + '?token=' 
           + process.env.EVENTBRITE_PRIVATE_KEY)
     .then(function (response) {
-      console.log(response.status + " : " + response.data.name);
-      console.log(response.data.status);
+      console.log(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
+      fs.appendFileSync('process.log', "\r\n" + eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status + ", " + message.author.username);
       console.log(D.dump(response.data));
+
       if (response.data.status === "placed") {
         message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
       } else {
