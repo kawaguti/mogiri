@@ -47,18 +47,21 @@ client.on('message', message => {
   if ( re.test(message.content) ) {
     const eventbrite_order_id = RegExp.lastMatch.toString();
 
-    message.reply(eventbrite_order_id + "は" 
-                + order_limits[eventbrite_order_id] + "名分のうち、すでに" 
-                + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
+    if ( order_attendees[eventbrite_order_id] ) {
+    
+      message.reply(eventbrite_order_id + "は" 
+                  + order_limits[eventbrite_order_id] + "名分のうち、すでに" 
+                  + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
 
-    if (order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
-        !order_attendees[eventbrite_order_id].has(message.author.username)) {
+      if (order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
+          !order_attendees[eventbrite_order_id].has(message.author.username)) {
 
-      message.reply("あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。");
-      return;
+        message.reply("あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。");
+        return;
 
+      }
     }
-  
+    
     axios.get('https://www.eventbriteapi.com/v3/orders/' 
           + eventbrite_order_id
           + '?token=' 
@@ -79,6 +82,9 @@ client.on('message', message => {
           console.log(D.dump(response.data.attendees));
 
           fs.appendFileSync('orders_multiattendees.log', "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
+          if (order_attendees[eventbrite_order_id] == undefined){
+            order_attendees[eventbrite_order_id] = new Set();
+          }
           order_attendees[eventbrite_order_id].add(message.author.username);
           order_limits[eventbrite_order_id] = response.data.attendees.length;
           message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id].size + "名が登録されています。");
