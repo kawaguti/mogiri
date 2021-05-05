@@ -8,7 +8,12 @@ const fs = require('fs');
 let order_limits = {};
 let order_attendees = {};
 fs.readFile('orders_multiattendees.log', 'utf8', (err, data) => {
-  if (err) throw err;
+  if (err.code === 'ENOENT') {
+    console.log('File not found!');
+    return;
+  } else {
+    throw err;
+  }
   console.log(data);
   data.split('\r\n').forEach(line => {
     if ( line != "") {
