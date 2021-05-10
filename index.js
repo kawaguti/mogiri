@@ -79,8 +79,14 @@ client.on('message', message => {
       console.log(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
       fs.appendFileSync('process.log', "\r\n" + eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status + ", " + message.author.username);
       console.log(D.dump(response.data));
+      console.log("event_id: " + response.data.event_id);
 
-      if (response.data.status === "placed") {
+      if (response.data.event_id != process.env.EVENTBRITE_EVENT_ID) {
+        message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
+        return;
+      }
+
+      if ( response.data.status === "placed") {
         message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
 
         axios.get('https://www.eventbriteapi.com/v3/orders/' 
