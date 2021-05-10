@@ -20,7 +20,7 @@ DISCORD_ROLE_FOR_VALIDATED_USER={Discord Role Name for Valid User}
 
 To get your Eventbrite private key : <https://www.eventbrite.com/platform/api-keys>
 
-Event ID can be taken from your event management page URL, eid parameter 12-digits, https://www.eventbrite.com/myevent?eid=123456789012 
+Event ID can be taken from your event management page URL, eid parameter 12-digits, <https://www.eventbrite.com/myevent?eid=123456789012>
 
 To register your bot to your server, please see...
 
