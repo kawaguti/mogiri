@@ -125,9 +125,7 @@ client.on('message', message => {
     })
     .catch(function (error) {
       console.log(error);
-      if (error.response.status == 400) {
-        message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。");
-      }
+      message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
     })
   }
 })
