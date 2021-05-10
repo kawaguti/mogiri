@@ -50,9 +50,9 @@ client.on('message', message => {
   console.log("order_limits: " + D.dump(order_limits));
   console.log("order_attendees: " + D.dump(order_attendees));
 
-  const re = /(\d{10})/;
-  if ( re.test(message.content) ) {
-    const eventbrite_order_id = RegExp.lastMatch.toString();
+  const re = /#(\d{10})([^\d]|$)/;
+  if (( match_strings = re.exec(message.content)) !== null) {
+    const eventbrite_order_id = match_strings[1];
 
     if ( order_attendees[eventbrite_order_id] ) {
     
