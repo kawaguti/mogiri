@@ -70,9 +70,11 @@ client.on('message', message => {
     }
     
     axios.get('https://www.eventbriteapi.com/v3/orders/' 
-          + eventbrite_order_id
-          + '?token=' 
-          + process.env.EVENTBRITE_PRIVATE_KEY)
+          + eventbrite_order_id, 
+            { headers: {
+              Authorization: `Bearer ${process.env.EVENTBRITE_PRIVATE_KEY}`,
+            }
+    })
     .then(function (response) {
       console.log(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
       fs.appendFileSync('process.log', "\r\n" + eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status + ", " + message.author.username);
@@ -82,9 +84,12 @@ client.on('message', message => {
         message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
 
         axios.get('https://www.eventbriteapi.com/v3/orders/' 
-        + eventbrite_order_id
-        + '/attendees/?token=' 
-        + process.env.EVENTBRITE_PRIVATE_KEY)
+                  + eventbrite_order_id
+                  + '/attendees/', 
+                  { headers: {
+                    Authorization: `Bearer ${process.env.EVENTBRITE_PRIVATE_KEY}`,
+                  }
+        })
         .then(function (response) {
           console.log(D.dump(response.data.attendees));
 
