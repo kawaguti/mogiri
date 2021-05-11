@@ -2,7 +2,6 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const axios = require('axios');
 const D = require('dumpjs');
-require('dotenv').config();
 const config = require('config');
 
 const fs = require('fs');
@@ -74,7 +73,7 @@ client.on('message', message => {
     axios.get('https://www.eventbriteapi.com/v3/orders/' 
           + eventbrite_order_id, 
             { headers: {
-              Authorization: `Bearer ${process.env.EVENTBRITE_PRIVATE_KEY}`,
+              Authorization: `Bearer ${config.eventbrite.privateKey}`,
             }
     })
     .then(function (response) {
@@ -83,7 +82,7 @@ client.on('message', message => {
       console.log(D.dump(response.data));
       console.log("event_id: " + response.data.event_id);
 
-      if (response.data.event_id != process.env.EVENTBRITE_EVENT_ID) {
+      if (response.data.event_id != config.eventbrite.eventId) {
         message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
         return;
       }
@@ -95,7 +94,7 @@ client.on('message', message => {
                   + eventbrite_order_id
                   + '/attendees/', 
                   { headers: {
-                    Authorization: `Bearer ${process.env.EVENTBRITE_PRIVATE_KEY}`,
+                    Authorization: `Bearer ${config.eventbrite.privateKey}`,
                   }
         })
         .then(function (response) {
@@ -124,9 +123,9 @@ client.on('message', message => {
         return;
       }
 
-      const role = message.guild.roles.cache.find(role => role.name === process.env.DISCORD_ROLE_FOR_VALIDATED_USER );
+      const role = message.guild.roles.cache.find(role => role.name === config.discord.roleForValidUser );
       if ( role ) {
-        if (message.member.roles.cache.some(role => role.name === process.env.DISCORD_ROLE_FOR_VALIDATED_USER)) {
+        if (message.member.roles.cache.some(role => role.name === config.discord.roleForValidUser)) {
           message.reply("すでに" + role.name + "のロールをお持ちでした！");
         } else {
           message.member.roles.add(role);
@@ -141,7 +140,7 @@ client.on('message', message => {
   }
 })
 
-client.login(process.env.DISCORD_PRIVATE_KEY);
+client.login(config.discord.privateKey);
 
 
 // for docker keep-alive in azure

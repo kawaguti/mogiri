@@ -11,11 +11,20 @@ Ignore any warnings about unmet peer dependencies, as they're all optional.
 
 Please put these environment values on .env file on root dir.
 
-```DotENV:.env
-EVENTBRITE_PRIVATE_KEY={Your Evendbrite Private Key}
-EVENTBRITE_EVENT_ID={Your Evendbrite Event ID}
-DISCORD_PRIVATE_KEY={Your Discord Private Key}
-DISCORD_ROLE_FOR_VALIDATED_USER={Discord Role Name for Valid User}
+```config/{development|production}.json
+{
+    "data" : {
+        "filePath": "orders_attendees.csv"
+    },
+
+    "eventbrite" : {
+        "privateKey" : "{Your Evendbrite Private Key}",
+        "eventId" : "{Your Evendbrite Event ID}"
+    },
+
+    "discord" : {
+        "privateKey" : "{Your Discord Private Key}",
+        "roleForValidUser" : "{Discord Role Name for Valid User}
 ```
 
 To get your Eventbrite private key : <https://www.eventbrite.com/platform/api-keys>
