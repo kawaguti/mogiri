@@ -3,11 +3,14 @@ const client = new Discord.Client();
 const axios = require('axios');
 const D = require('dumpjs');
 require('dotenv').config();
+const config = require('config');
+const dataFilePath = config.get('data.filePath');
+console.log("dataFilePath: " + dataFilePath);
 
 const fs = require('fs');
 let order_limits = {};
 let order_attendees = {};
-fs.readFile('orders_multiattendees.log', 'utf8', (err, data) => {
+fs.readFile(dataFilePath, 'utf8', (err, data) => {
   if ( err ) {
     if ( err.code === 'ENOENT') {
       console.log('File not found!');
@@ -99,7 +102,7 @@ client.on('message', message => {
         .then(function (response) {
           console.log(D.dump(response.data.attendees));
 
-          fs.appendFileSync('orders_multiattendees.log', "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
+          fs.appendFileSync(dataFilePath, "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
           if (order_attendees[eventbrite_order_id] == undefined){
             order_attendees[eventbrite_order_id] = new Set();
           }
