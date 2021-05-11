@@ -37,6 +37,19 @@ Setting up a bot application : <https://discordjs.guide/preparations/setting-up-
 
 Adding your bot to servers : <https://discordjs.guide/preparations/adding-your-bot-to-servers.html>
 
+## config and run
+in bash
+```
+$ export NODE_ENV=development
+$ node index.js
+```
+
+in Powershell
+```
+PS > $env:NODE_ENV=development
+PS > node index.js
+```
+
 ## Quick Example
 
 ```Shell
