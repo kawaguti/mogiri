@@ -107,4 +107,6 @@ dist
 .deployment
 .vscode/settings.json
 
-orders_attendees_dev.csv
+# for mogiri
+*.csv
+config
