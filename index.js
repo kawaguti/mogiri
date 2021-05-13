@@ -4,24 +4,34 @@ const axios = require('axios');
 const D = require('dumpjs');
 const config = require('config');
 
+const log4js = require("log4js");
+log4js.configure({
+  appenders: {
+    console: { type: 'console' },
+    logfile: { type: 'file', filename: 'debug.log' },
+  },
+  categories: { default: { appenders: ['console', 'logfile'], level: 'debug' } }
+});
+const logger = log4js.getLogger();
+
 const fs = require('fs');
 let order_limits = {};
 let order_attendees = {};
-console.log("dataFilePath: " + config.data.filePath);
+logger.debug("dataFilePath: " + config.data.filePath);
 fs.readFile(config.data.filePath, 'utf8', (err, data) => {
   if ( err ) {
     if ( err.code === 'ENOENT') {
-      console.log('File not found!');
+      logger.debug('File not found!');
       return;
     } else {
       throw err;
     }
   }
-  console.log(data);
+  //logger.debug(data);
   data.split('\r\n').forEach(line => {
     if ( line != "") {
       const order = line.split(', ');
-      console.log(D.dump(order));
+      //logger.debug(D.dump(order));
       const eventbrite_order_id = order[0].toString();
       if (order_attendees[eventbrite_order_id] == undefined){
         order_limits[eventbrite_order_id] = order[1];
@@ -35,7 +45,7 @@ fs.readFile(config.data.filePath, 'utf8', (err, data) => {
 });
 
 client.once('ready', () => {
-  console.log ('This bot is online!');
+  logger.debug('This bot is online!');
 })
 
 client.on('message', message => {
@@ -45,11 +55,11 @@ client.on('message', message => {
   if ( re1.test(message.content) ){
     message.channel.send('児島だよ');
   }
-  console.log(message.content);
-  console.log(message.author.username);
+  logger.debug(message.content);
+  logger.debug(message.author.username);
 
-  console.log("order_limits: " + D.dump(order_limits));
-  console.log("order_attendees: " + D.dump(order_attendees));
+  logger.debug("order_limits: " + D.dump(order_limits));
+  logger.debug("order_attendees: " + D.dump(order_attendees));
 
   const re = /#(\d{10})([^\d]|$)/;
   if (( match_strings = re.exec(message.content)) !== null) {
@@ -77,10 +87,10 @@ client.on('message', message => {
             }
     })
     .then(function (response) {
-      console.log(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
+      logger.debug(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
       fs.appendFileSync('process.log', "\r\n" + eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status + ", " + message.author.username);
-      console.log(D.dump(response.data));
-      console.log("event_id: " + response.data.event_id);
+      logger.debug(D.dump(response.data));
+      logger.debug("event_id: " + response.data.event_id);
 
       if (response.data.event_id != config.eventbrite.eventId) {
         message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
@@ -98,7 +108,7 @@ client.on('message', message => {
                   }
         })
         .then(function (response) {
-          console.log(D.dump(response.data.attendees));
+          logger.debug(D.dump(response.data.attendees));
 
           fs.appendFileSync(config.data.filePath, "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
           if (order_attendees[eventbrite_order_id] == undefined){
@@ -110,7 +120,7 @@ client.on('message', message => {
 
         })
         .catch(function (error) {
-          console.log(error);
+          logger.debug(error);
           message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
         })    
 
@@ -134,7 +144,7 @@ client.on('message', message => {
       }
     })
     .catch(function (error) {
-      console.log(error);
+      logger.debug(error);
       message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
     })
   }
@@ -149,9 +159,9 @@ const app = express()
 const port = 8080
 
 app.get('/', (req, res) => {
-res.send('Hello World!')
+  res.send('Hello World!')
 })
 
 app.listen(port, () => {
-console.log(`Example app listening at http://localhost:${port}`)
+  logger.debug(`http listening at http://localhost:${port}`)
 })
