@@ -109,5 +109,5 @@ dist
 
 # for mogiri
 *.csv
-config
+config/*.json
 package-lock.json
