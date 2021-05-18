@@ -48,10 +48,7 @@ client.on('message', message => {
     .then(function (response) {
       dumpOrderStatus(eventbrite_order_id, response);
 
-      if (isNotForThisEvent(response)) {
-        messageNotForThisEvent(message, eventbrite_order_id);
-        return;
-      }
+      if ( !isForThisEvent(message, eventbrite_order_id, response)) return;
 
       if ( isValidOrderOnEventbrite(response)) {
         messageValidOrderOnEventbrite(message, eventbrite_order_id);
@@ -122,8 +119,13 @@ function dumpCurrentStore(message) {
   logger.debug("order_attendees: " + D.dump(order_attendees));
 }
 
-function isNotForThisEvent(response) {
-  return response.data.event_id != config.eventbrite.eventId;
+function isForThisEvent(message, eventbrite_order_id, response) {
+  if ( response.data.event_id == config.eventbrite.eventId ) {
+    return true;
+  } else {
+    messageNotForThisEvent(message, eventbrite_order_id);
+    return false;
+  }
 }
 
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
