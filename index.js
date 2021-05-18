@@ -46,7 +46,7 @@ client.on('message', message => {
       if (order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
           !order_attendees[eventbrite_order_id].has(message.author.username)) {
 
-        message.reply("あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。");
+        messageOverCommittedOnThisOrder(message);
         return;
 
       }
@@ -119,6 +119,10 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function messageOverCommittedOnThisOrder(message) {
+  message.reply("あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。");
+}
 
 function messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id) {
   if (typeof (response.data.status) == "string") {
