@@ -53,7 +53,7 @@ client.on('message', message => {
         return;
       }
 
-      if ( response.data.status === "placed") {
+      if ( isValidOrderOnEventbrite(response)) {
         messageValidOrderOnEventbrite(message, eventbrite_order_id);
 
         axios.get('https://www.eventbriteapi.com/v3/orders/' 
@@ -99,6 +99,10 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function isValidOrderOnEventbrite(response) {
+  return response.data.status === "placed";
+}
 
 function dumpAttendeesOnThisOrder(response) {
   logger.debug(D.dump(response.data.attendees));
