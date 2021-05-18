@@ -68,7 +68,6 @@ client.on('message', message => {
           messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
         })    
       } else {
-        messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id);
         return;
       }
       setDiscordRole(message);
@@ -101,6 +100,7 @@ function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
     messageValidOrderOnEventbrite(message, eventbrite_order_id);
     return true;
   } else {
+    messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id);
     return false;
   }
 }
