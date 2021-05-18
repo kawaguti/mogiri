@@ -70,7 +70,7 @@ client.on('message', message => {
       }
 
       if ( response.data.status === "placed") {
-        message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
+        messageValidOrderOnEventbrite(message, eventbrite_order_id);
 
         axios.get('https://www.eventbriteapi.com/v3/orders/' 
                   + eventbrite_order_id
@@ -119,6 +119,10 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function messageValidOrderOnEventbrite(message, eventbrite_order_id) {
+  message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
+}
 
 function messageOverCommittedOnThisOrder(message) {
   message.reply("あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。");
