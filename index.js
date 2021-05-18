@@ -61,6 +61,7 @@ client.on('message', message => {
           dumpAttendeesOnThisOrder(response);
           addOrder(eventbrite_order_id, response, message);
           setDiscordRole(message);
+          messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
         })
         .catch(function (error) {
           logger.debug(error);
@@ -129,7 +130,6 @@ function isForThisEvent(message, eventbrite_order_id, response) {
 }
 
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
-  messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
   if ( order_attendees[eventbrite_order_id] === undefined) { 
     message.reply(eventbrite_order_id + "は初めての問い合わせです。");
     return false;
@@ -151,7 +151,7 @@ function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
  
   if (order_attendees[eventbrite_order_id] ) {
     message.reply(eventbrite_order_id + "は"
-    + order_limits[eventbrite_order_id] + "名分のうち、すでに"
+    + order_limits[eventbrite_order_id] + "名分のうち、"
     + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
   } else {
     message.reply(eventbrite_order_id + "は初めての登録です。");
@@ -201,7 +201,6 @@ function addOrder(eventbrite_order_id, response, message) {
   }
   order_attendees[eventbrite_order_id].add(message.author.username);
   order_limits[eventbrite_order_id] = response.data.attendees.length;
-  message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id].size + "名が登録されています。");
 }
 
 function restoreOrders() {
