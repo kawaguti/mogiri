@@ -130,20 +130,26 @@ function isForThisEvent(message, eventbrite_order_id, response) {
 
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
   messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
-  if ( order_attendees[eventbrite_order_id] &&
-      order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
-      !order_attendees[eventbrite_order_id].has(message.author.username)) {
+  if ( order_attendees[eventbrite_order_id] === undefined) return false;
+  if ( order_attendees[eventbrite_order_id].has(message.author.username)) {
+    message.reply(eventbrite_order_id + "で" + message.author.username + "さんはすでに登録済みです。");
     return false;
-  } else {
-    messageOverCommittedOnThisOrder(message);
-    return true;
   }
+  if ( order_attendees[eventbrite_order_id].size < order_limits[eventbrite_order_id] ) return false;
+
+  messageOverCommittedOnThisOrder(message);
+  return true;
 }
 
 function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
-  message.reply(eventbrite_order_id + "は"
+ 
+  if (order_attendees[eventbrite_order_id] ) {
+    message.reply(eventbrite_order_id + "は"
     + order_limits[eventbrite_order_id] + "名分のうち、すでに"
     + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
+  } else {
+    message.reply(eventbrite_order_id + "は初めての登録です。");
+  }
 }
 
 function messageValidOrderOnEventbrite(message, eventbrite_order_id) {
