@@ -58,7 +58,6 @@ client.on('message', message => {
     })
     .then(function (response) {
       logger.debug(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
-      fs.appendFileSync('process.log', "\r\n" + eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status + ", " + message.author.username);
       logger.debug(D.dump(response.data));
       logger.debug("event_id: " + response.data.event_id);
 
