@@ -61,13 +61,13 @@ client.on('message', message => {
         .then(function (response) {
           dumpAttendeesOnThisOrder(response);
           addOrder(eventbrite_order_id, response, message);
+          setDiscordRole(message);
         })
         .catch(function (error) {
           logger.debug(error);
           messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
         })    
       }
-      setDiscordRole(message);
     })
     .catch(function (error) {
       logger.debug(error);
