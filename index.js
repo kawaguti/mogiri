@@ -70,20 +70,16 @@ client.on('message', message => {
         })
         .then(function (response) {
           logger.debug(D.dump(response.data.attendees));
-
           addOrder(eventbrite_order_id, response, message);
-
         })
         .catch(function (error) {
           logger.debug(error);
           messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
         })    
-
       } else {
         messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id);
         return;
       }
-
       setDiscordRole(message);
     })
     .catch(function (error) {
