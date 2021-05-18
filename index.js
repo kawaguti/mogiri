@@ -14,35 +14,7 @@ log4js.configure({
 });
 const logger = log4js.getLogger();
 
-const fs = require('fs');
-let order_limits = {};
-let order_attendees = {};
-logger.debug("dataFilePath: " + config.data.filePath);
-fs.readFile(config.data.filePath, 'utf8', (err, data) => {
-  if ( err ) {
-    if ( err.code === 'ENOENT') {
-      logger.debug('File not found!');
-      return;
-    } else {
-      throw err;
-    }
-  }
-  //logger.debug(data);
-  data.split('\r\n').forEach(line => {
-    if ( line != "") {
-      const order = line.split(', ');
-      //logger.debug(D.dump(order));
-      const eventbrite_order_id = order[0].toString();
-      if (order_attendees[eventbrite_order_id] == undefined){
-        order_limits[eventbrite_order_id] = order[1];
-        order_attendees[eventbrite_order_id] = new Set();
-        order_attendees[eventbrite_order_id].add(order[2]);
-      } else {
-        order_attendees[eventbrite_order_id].add(order[2]);
-      }
-    }
-  });
-});
+var { order_limits, order_attendees, fs } = restoreOrders();
 
 client.once('ready', () => {
   logger.debug('This bot is online!');
@@ -165,3 +137,36 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function restoreOrders() {
+  const fs = require('fs');
+  let order_limits = {};
+  let order_attendees = {};
+  logger.debug("dataFilePath: " + config.data.filePath);
+  fs.readFile(config.data.filePath, 'utf8', (err, data) => {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        logger.debug('File not found!');
+        return;
+      } else {
+        throw err;
+      }
+    }
+    //logger.debug(data);
+    data.split('\r\n').forEach(line => {
+      if (line != "") {
+        const order = line.split(', ');
+        //logger.debug(D.dump(order));
+        const eventbrite_order_id = order[0].toString();
+        if (order_attendees[eventbrite_order_id] == undefined) {
+          order_limits[eventbrite_order_id] = order[1];
+          order_attendees[eventbrite_order_id] = new Set();
+          order_attendees[eventbrite_order_id].add(order[2]);
+        } else {
+          order_attendees[eventbrite_order_id].add(order[2]);
+        }
+      }
+    });
+  });
+  return { order_limits, order_attendees, fs };
+}
