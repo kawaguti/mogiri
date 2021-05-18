@@ -99,15 +99,7 @@ client.on('message', message => {
         return;
       }
 
-      const role = message.guild.roles.cache.find(role => role.name === config.discord.roleForValidUser );
-      if ( role ) {
-        if (message.member.roles.cache.some(role => role.name === config.discord.roleForValidUser)) {
-          message.reply("すでに" + role.name + "のロールをお持ちでした！");
-        } else {
-          message.member.roles.add(role);
-          message.reply(role.name + "のロールをつけました！");
-        }
-      }
+      setDiscordRole(message);
     })
     .catch(function (error) {
       logger.debug(error);
@@ -131,6 +123,18 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function setDiscordRole(message) {
+  const role = message.guild.roles.cache.find(role => role.name === config.discord.roleForValidUser);
+  if (role) {
+    if (message.member.roles.cache.some(role => role.name === config.discord.roleForValidUser)) {
+      message.reply("すでに" + role.name + "のロールをお持ちでした！");
+    } else {
+      message.member.roles.add(role);
+      message.reply(role.name + "のロールをつけました！");
+    }
+  }
+}
 
 function addOrder(eventbrite_order_id, response, message) {
   fs.appendFileSync(config.data.filePath, "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
