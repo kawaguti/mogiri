@@ -87,7 +87,7 @@ client.on('message', message => {
         })
         .catch(function (error) {
           logger.debug(error);
-          message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
+          messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
         })    
 
       } else {
@@ -103,7 +103,7 @@ client.on('message', message => {
     })
     .catch(function (error) {
       logger.debug(error);
-      message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
+      messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
     })
   }
 })
@@ -123,6 +123,10 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function messageNotFoundOnEventbrite(message, eventbrite_order_id, error) {
+  message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
+}
 
 function setDiscordRole(message) {
   const role = message.guild.roles.cache.find(role => role.name === config.discord.roleForValidUser);
