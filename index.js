@@ -35,8 +35,7 @@ client.on('message', message => {
     const eventbrite_order_id = match_strings[1];
 
     if ( isOverCommittedOnThisOrder(eventbrite_order_id, message)) {
-        messageOverCommittedOnThisOrder(message);
-        return;
+      return;
     }
     
     axios.get('https://www.eventbriteapi.com/v3/orders/' 
@@ -130,9 +129,15 @@ function isForThisEvent(message, eventbrite_order_id, response) {
 }
 
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
-  return order_attendees[eventbrite_order_id] &&
-    order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
-    !order_attendees[eventbrite_order_id].has(message.author.username);
+  messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
+  if ( order_attendees[eventbrite_order_id] &&
+      order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
+      !order_attendees[eventbrite_order_id].has(message.author.username)) {
+    return false;
+  } else {
+    messageOverCommittedOnThisOrder(message);
+    return true;
+  }
 }
 
 function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
