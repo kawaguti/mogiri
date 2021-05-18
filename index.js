@@ -91,11 +91,7 @@ client.on('message', message => {
         })    
 
       } else {
-        if ( typeof (response.data.status) == "string" ) {
-          message.reply(eventbrite_order_id + "は現在、有効ではありません。 status=" + response.data.status);
-        } else {
-          message.reply(eventbrite_order_id + "は現在、有効ではありません。");        
-        }
+        messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id);
         return;
       }
 
@@ -123,6 +119,14 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id) {
+  if (typeof (response.data.status) == "string") {
+    message.reply(eventbrite_order_id + "は現在、有効ではありません。 status=" + response.data.status);
+  } else {
+    message.reply(eventbrite_order_id + "は現在、有効ではありません。");
+  }
+}
 
 function messageNotForThisEvent(message, eventbrite_order_id) {
   message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
