@@ -37,17 +37,9 @@ client.on('message', message => {
   if (( match_strings = re.exec(message.content)) !== null) {
     const eventbrite_order_id = match_strings[1];
 
-    if ( order_attendees[eventbrite_order_id] ) {
-    
-      messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
-
-      if (order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
-          !order_attendees[eventbrite_order_id].has(message.author.username)) {
-
+    if ( isOverCommittedOnThisOrder(eventbrite_order_id, message)) {
         messageOverCommittedOnThisOrder(message);
         return;
-
-      }
     }
     
     axios.get('https://www.eventbriteapi.com/v3/orders/' 
@@ -116,6 +108,12 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
+  return order_attendees[eventbrite_order_id] &&
+    order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
+    !order_attendees[eventbrite_order_id].has(message.author.username);
+}
 
 function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
   message.reply(eventbrite_order_id + "は"
