@@ -27,11 +27,8 @@ client.on('message', message => {
   if ( re1.test(message.content) ){
     message.channel.send('児島だよ');
   }
-  logger.debug(message.content);
-  logger.debug(message.author.username);
 
-  logger.debug("order_limits: " + D.dump(order_limits));
-  logger.debug("order_attendees: " + D.dump(order_attendees));
+  dumpCurrentStore(message);
 
   const re = /#(\d{10})([^\d]|$)/;
   if (( match_strings = re.exec(message.content)) !== null) {
@@ -49,9 +46,7 @@ client.on('message', message => {
             }
     })
     .then(function (response) {
-      logger.debug(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
-      logger.debug(D.dump(response.data));
-      logger.debug("event_id: " + response.data.event_id);
+      dumpOrderStatus(eventbrite_order_id, response);
 
       if (isForThisEvent(response)) {
         messageNotForThisEvent(message, eventbrite_order_id);
@@ -69,7 +64,7 @@ client.on('message', message => {
                   }
         })
         .then(function (response) {
-          logger.debug(D.dump(response.data.attendees));
+          dumpAttendeesOnThisOrder(response);
           addOrder(eventbrite_order_id, response, message);
         })
         .catch(function (error) {
@@ -104,6 +99,24 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function dumpAttendeesOnThisOrder(response) {
+  logger.debug(D.dump(response.data.attendees));
+}
+
+function dumpOrderStatus(eventbrite_order_id, response) {
+  logger.debug(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
+  logger.debug(D.dump(response.data));
+  logger.debug("event_id: " + response.data.event_id);
+}
+
+function dumpCurrentStore(message) {
+  logger.debug(message.content);
+  logger.debug(message.author.username);
+
+  logger.debug("order_limits: " + D.dump(order_limits));
+  logger.debug("order_attendees: " + D.dump(order_attendees));
+}
 
 function isForThisEvent(response) {
   return response.data.event_id != config.eventbrite.eventId;
