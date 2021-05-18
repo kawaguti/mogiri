@@ -53,7 +53,7 @@ client.on('message', message => {
       logger.debug(D.dump(response.data));
       logger.debug("event_id: " + response.data.event_id);
 
-      if (response.data.event_id != config.eventbrite.eventId) {
+      if (isForThisEvent(response)) {
         messageNotForThisEvent(message, eventbrite_order_id);
         return;
       }
@@ -108,6 +108,10 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function isForThisEvent(response) {
+  return response.data.event_id != config.eventbrite.eventId;
+}
 
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
   return order_attendees[eventbrite_order_id] &&
