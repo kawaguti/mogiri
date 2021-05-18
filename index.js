@@ -82,13 +82,7 @@ client.on('message', message => {
         .then(function (response) {
           logger.debug(D.dump(response.data.attendees));
 
-          fs.appendFileSync(config.data.filePath, "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
-          if (order_attendees[eventbrite_order_id] == undefined){
-            order_attendees[eventbrite_order_id] = new Set();
-          }
-          order_attendees[eventbrite_order_id].add(message.author.username);
-          order_limits[eventbrite_order_id] = response.data.attendees.length;
-          message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id].size + "名が登録されています。");
+          addOrder(eventbrite_order_id, response, message);
 
         })
         .catch(function (error) {
@@ -137,6 +131,16 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function addOrder(eventbrite_order_id, response, message) {
+  fs.appendFileSync(config.data.filePath, "\r\n" + eventbrite_order_id + ", " + response.data.attendees.length + ", " + message.author.username);
+  if (order_attendees[eventbrite_order_id] == undefined) {
+    order_attendees[eventbrite_order_id] = new Set();
+  }
+  order_attendees[eventbrite_order_id].add(message.author.username);
+  order_limits[eventbrite_order_id] = response.data.attendees.length;
+  message.reply(eventbrite_order_id + "は" + response.data.attendees.length + "名分のうち、" + order_attendees[eventbrite_order_id].size + "名が登録されています。");
+}
 
 function restoreOrders() {
   const fs = require('fs');
