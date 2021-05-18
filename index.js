@@ -48,9 +48,8 @@ client.on('message', message => {
     .then(function (response) {
       dumpOrderStatus(eventbrite_order_id, response);
 
-      if ( !isForThisEvent(message, eventbrite_order_id, response)) return;
-
-      if ( isValidOrderOnEventbrite(message, eventbrite_order_id, response)) {
+      if ( isForThisEvent(message, eventbrite_order_id, response) &&
+          isValidOrderOnEventbrite(message, eventbrite_order_id, response)) {
 
         axios.get('https://www.eventbriteapi.com/v3/orders/' 
                   + eventbrite_order_id
@@ -67,8 +66,6 @@ client.on('message', message => {
           logger.debug(error);
           messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
         })    
-      } else {
-        return;
       }
       setDiscordRole(message);
     })
