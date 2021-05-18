@@ -39,9 +39,7 @@ client.on('message', message => {
 
     if ( order_attendees[eventbrite_order_id] ) {
     
-      message.reply(eventbrite_order_id + "は" 
-                  + order_limits[eventbrite_order_id] + "名分のうち、すでに" 
-                  + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
+      messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
 
       if (order_limits[eventbrite_order_id] <= order_attendees[eventbrite_order_id].size &&
           !order_attendees[eventbrite_order_id].has(message.author.username)) {
@@ -119,6 +117,12 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
+  message.reply(eventbrite_order_id + "は"
+    + order_limits[eventbrite_order_id] + "名分のうち、すでに"
+    + order_attendees[eventbrite_order_id].size + "名が登録済みです。");
+}
 
 function messageValidOrderOnEventbrite(message, eventbrite_order_id) {
   message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
