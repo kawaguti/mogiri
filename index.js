@@ -130,12 +130,18 @@ function isForThisEvent(message, eventbrite_order_id, response) {
 
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
   messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
-  if ( order_attendees[eventbrite_order_id] === undefined) return false;
-  if ( order_attendees[eventbrite_order_id].has(message.author.username)) {
-    message.reply(eventbrite_order_id + "で" + message.author.username + "さんはすでに登録済みです。");
+  if ( order_attendees[eventbrite_order_id] === undefined) { 
+    message.reply(eventbrite_order_id + "は初めての問い合わせです。");
     return false;
   }
-  if ( order_attendees[eventbrite_order_id].size < order_limits[eventbrite_order_id] ) return false;
+  if ( order_attendees[eventbrite_order_id].has(message.author.username)) {
+    message.reply(eventbrite_order_id + "で" + message.author.username + "さんは前に処理した記録がありますが、念のためもう一回確認しますね。");
+    return false;
+  }
+  if ( order_attendees[eventbrite_order_id].size < order_limits[eventbrite_order_id] ) {
+    messageNumberOfUserOnThisOrder(message, eventbrite_order_id);
+    return false;
+  }
 
   messageOverCommittedOnThisOrder(message);
   return true;
