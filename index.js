@@ -65,7 +65,7 @@ client.on('message', message => {
       logger.debug("event_id: " + response.data.event_id);
 
       if (response.data.event_id != config.eventbrite.eventId) {
-        message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
+        messageNotForThisEvent(message, eventbrite_order_id);
         return;
       }
 
@@ -123,6 +123,10 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
+
+function messageNotForThisEvent(message, eventbrite_order_id) {
+  message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
+}
 
 function messageNotFoundOnEventbrite(message, eventbrite_order_id, error) {
   message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
