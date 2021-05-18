@@ -48,7 +48,7 @@ client.on('message', message => {
     .then(function (response) {
       dumpOrderStatus(eventbrite_order_id, response);
 
-      if (isForThisEvent(response)) {
+      if (isNotForThisEvent(response)) {
         messageNotForThisEvent(message, eventbrite_order_id);
         return;
       }
@@ -118,7 +118,7 @@ function dumpCurrentStore(message) {
   logger.debug("order_attendees: " + D.dump(order_attendees));
 }
 
-function isForThisEvent(response) {
+function isNotForThisEvent(response) {
   return response.data.event_id != config.eventbrite.eventId;
 }
 
