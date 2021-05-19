@@ -28,7 +28,7 @@ client.on('message', message => {
     message.channel.send('児島だよ');
   }
 
-  dumpCurrentStore(message);
+  //dumpCurrentStore(message);
 
   const re = /#(\d{10})([^\d]|$)/;
   if (( match_strings = re.exec(message.content)) !== null) {
@@ -45,7 +45,7 @@ client.on('message', message => {
             }
     })
     .then(function (response) {
-      dumpOrderStatus(eventbrite_order_id, response);
+      //dumpOrderStatus(eventbrite_order_id, response);
 
       if ( isForThisEvent(message, eventbrite_order_id, response) &&
           isValidOrderOnEventbrite(message, eventbrite_order_id, response)) {
