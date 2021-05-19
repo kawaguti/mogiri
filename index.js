@@ -23,9 +23,21 @@ client.once('ready', () => {
 client.on('message', message => {
   if( message.author.bot) return;
   
+  console.log("channel: " + message.channel.name);
+  if( !(
+      message.channel.name === "受付" || 
+      message.channel.name === "実行委員会" || 
+      message.channel.name === "品川"
+      )) return;
+
+
   const re1 = /大島さん/;
   if ( re1.test(message.content) ){
-    message.channel.send('児島だよ');
+    message.reply('児島だよ');
+  }
+  const re2 = /児島さん/;
+  if ( re2.test(message.content) ){
+    message.reply('そうだよ');
   }
 
   //dumpCurrentStore(message);
