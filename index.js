@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const DiscoProxy = require('./src/disco_proxy');
 const client = new Discord.Client();
 const axios = require('axios');
 const D = require('dumpjs');
@@ -105,7 +106,8 @@ app.listen(port, () => {
 
 function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
   if ( response.data.status === "placed" ) {
-    messageValidOrderOnEventbrite(message, eventbrite_order_id);
+    const dp = new DiscoProxy(message);
+    dp.messageValidOrderOnEventbrite(eventbrite_order_id);
     return true;
   } else {
     messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id);
@@ -135,7 +137,8 @@ function isForThisEvent(message, eventbrite_order_id, response) {
   if ( response.data.event_id == config.eventbrite.eventId ) {
     return true;
   } else {
-    messageNotForThisEvent(message, eventbrite_order_id);
+    const dp = new DiscoProxy(message);
+    dp.messageNotForThisEvent(eventbrite_order_id);
     return false;
   }
 }
@@ -169,10 +172,6 @@ function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
   }
 }
 
-function messageValidOrderOnEventbrite(message, eventbrite_order_id) {
-  message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
-}
-
 function messageOverCommittedOnThisOrder(message) {
   message.reply("あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。");
 }
@@ -183,10 +182,6 @@ function messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_or
   } else {
     message.reply(eventbrite_order_id + "は現在、有効ではありません。");
   }
-}
-
-function messageNotForThisEvent(message, eventbrite_order_id) {
-  message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
 }
 
 function messageNotFoundOnEventbrite(message, eventbrite_order_id, error) {
