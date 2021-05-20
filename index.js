@@ -4,15 +4,8 @@ const client = new Discord.Client();
 const axios = require('axios');
 const D = require('dumpjs');
 const config = require('config');
-
-const log4js = require("log4js");
-log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-  },
-  categories: { default: { appenders: ['console'], level: 'debug' } }
-});
-const logger = log4js.getLogger();
+const {logger} = require('./src/logger')
+const {dumpAttendeesOnThisOrder, dumpOrderStatus, dumpCurrentStore} = reqire('./src/matsumoto')
 
 var { order_limits, order_attendees, fs } = restoreOrders();
 
@@ -118,24 +111,6 @@ function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
     dp.reply(CODE, eventbrite_order_id, response.data.status);
     return false;
   }
-}
-
-function dumpAttendeesOnThisOrder(response) {
-  logger.debug(D.dump(response.data.attendees));
-}
-
-function dumpOrderStatus(eventbrite_order_id, response) {
-  logger.debug(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
-  logger.debug(D.dump(response.data));
-  logger.debug("event_id: " + response.data.event_id);
-}
-
-function dumpCurrentStore(message) {
-  logger.debug(message.content);
-  logger.debug(message.author.username);
-
-  logger.debug("order_limits: " + D.dump(order_limits));
-  logger.debug("order_attendees: " + D.dump(order_attendees));
 }
 
 function isForThisEvent(message, eventbrite_order_id, response) {
