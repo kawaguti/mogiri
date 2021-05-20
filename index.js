@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const DiscoResponse = require('./src/disco_response');
 const client = new Discord.Client();
 const axios = require('axios');
 const D = require('dumpjs');
@@ -76,13 +77,15 @@ client.on('message', message => {
         })
         .catch(function (error) {
           logger.debug(error);
-          messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
+          const dp = new DiscoResponse(message);
+          dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
         })    
       }
     })
     .catch(function (error) {
       logger.debug(error);
-      messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
+      const dp = new DiscoResponse(message);
+      dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
     })
   }
 })
@@ -104,11 +107,15 @@ app.listen(port, () => {
 })
 
 function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
+  const dp = new DiscoResponse(message);
   if ( response.data.status === "placed" ) {
-    messageValidOrderOnEventbrite(message, eventbrite_order_id);
+    dp.reply('VALID_ORDER_ON_EVENTBRITE', eventbrite_order_id);
     return true;
   } else {
-    messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id);
+    const CODE = typeof(response.data.status) === 'string' ?
+    'INVALID_TICKET_STATUS_ON_EVENTBRITE_1' : 'INVALID_TICKET_STATUS_ON_EVENTBRITE_2';
+
+    dp.reply(CODE, eventbrite_order_id, response.data.status);
     return false;
   }
 }
@@ -135,7 +142,8 @@ function isForThisEvent(message, eventbrite_order_id, response) {
   if ( response.data.event_id == config.eventbrite.eventId ) {
     return true;
   } else {
-    messageNotForThisEvent(message, eventbrite_order_id);
+    const dp = new DiscoResponse(message);
+    dp.reply('NOT_FOR_THIS_EVENT', eventbrite_order_id);
     return false;
   }
 }
@@ -154,12 +162,12 @@ function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
     return false;
   }
 
-  messageOverCommittedOnThisOrder(message);
+  const dp = new DiscoResponse(message);
+  dp.reply('OVER_COMMITTED_ON_THIS_ORDER');
   return true;
 }
 
 function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
- 
   if (order_attendees[eventbrite_order_id] ) {
     message.reply(eventbrite_order_id + "は"
     + order_limits[eventbrite_order_id] + "名分のうち、"
@@ -167,30 +175,6 @@ function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
   } else {
     message.reply(eventbrite_order_id + "は初めての登録です。");
   }
-}
-
-function messageValidOrderOnEventbrite(message, eventbrite_order_id) {
-  message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
-}
-
-function messageOverCommittedOnThisOrder(message) {
-  message.reply("あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。");
-}
-
-function messageInvalidTicketStatusOnEventbrite(response, message, eventbrite_order_id) {
-  if (typeof (response.data.status) == "string") {
-    message.reply(eventbrite_order_id + "は現在、有効ではありません。 status=" + response.data.status);
-  } else {
-    message.reply(eventbrite_order_id + "は現在、有効ではありません。");
-  }
-}
-
-function messageNotForThisEvent(message, eventbrite_order_id) {
-  message.reply(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)");
-}
-
-function messageNotFoundOnEventbrite(message, eventbrite_order_id, error) {
-  message.reply("あら、" + eventbrite_order_id + "はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(" + error.response.status + ")");
 }
 
 function setDiscordRole(message) {

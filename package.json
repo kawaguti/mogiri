@@ -4,7 +4,8 @@
   "description": "Conference reception bot for Discord with Eventbrite",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "repository": {
     "type": "git",
