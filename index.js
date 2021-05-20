@@ -78,14 +78,14 @@ client.on('message', message => {
         .catch(function (error) {
           logger.debug(error);
           const dp = new DiscoResponse(message);
-          dp.messageNotFoundOnEventbrite(eventbrite_order_id, error.response.status);
+          dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
         })    
       }
     })
     .catch(function (error) {
       logger.debug(error);
       const dp = new DiscoResponse(message);
-      dp.messageNotFoundOnEventbrite(eventbrite_order_id, error.response.status);
+      dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
     })
   }
 })
@@ -109,10 +109,13 @@ app.listen(port, () => {
 function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
   const dp = new DiscoResponse(message);
   if ( response.data.status === "placed" ) {
-    dp.messageValidOrderOnEventbrite(eventbrite_order_id);
+    dp.reply('VALID_ORDER_ON_EVENTBRITE', eventbrite_order_id);
     return true;
   } else {
-    dp.messageInvalidTicketStatusOnEventbrite(eventbrite_order_id, response.data.status);
+    const CODE = typeof(response.data.status) === 'string' ?
+    'INVALID_TICKET_STATUS_ON_EVENTBRITE_1' : 'INVALID_TICKET_STATUS_ON_EVENTBRITE_2';
+
+    dp.reply(CODE, eventbrite_order_id, response.data.status);
     return false;
   }
 }
@@ -140,7 +143,7 @@ function isForThisEvent(message, eventbrite_order_id, response) {
     return true;
   } else {
     const dp = new DiscoResponse(message);
-    dp.messageNotForThisEvent(eventbrite_order_id);
+    dp.reply('NOT_FOR_THIS_EVENT', eventbrite_order_id);
     return false;
   }
 }
@@ -160,12 +163,11 @@ function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
   }
 
   const dp = new DiscoResponse(message);
-  dp.messageOverCommittedOnThisOrder();
+  dp.reply('OVER_COMMITTED_ON_THIS_ORDER');
   return true;
 }
 
 function messageNumberOfUserOnThisOrder(message, eventbrite_order_id) {
- 
   if (order_attendees[eventbrite_order_id] ) {
     message.reply(eventbrite_order_id + "は"
     + order_limits[eventbrite_order_id] + "名分のうち、"
