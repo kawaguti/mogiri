@@ -20,11 +20,21 @@ class DiscoResponse {
   get message() {return this._message}
 
   /**
+   * Discord へ返信する
+   * @param {String} code   Message code of MSG_TABLE
+   * @param {...any} args
+   */
+  reply(code, ...args) {
+    const message = MSG_TABLE[code] ? MSG_TABLE[code](...args) : 'パニック!'
+    this.message.reply(message)
+  }
+
+  /**
    * @param {String} id eventbrite order id
    * @deprecated
    */
   messageNotForThisEvent(id) {
-    this.message.reply(MSG_TABLE['NOT_FOR_THIS_EVENT'](id))
+    this.reply('NOT_FOR_THIS_EVENT', id)
   }
 
   /**
@@ -32,14 +42,14 @@ class DiscoResponse {
    * @deprecated
    */
   messageValidOrderOnEventbrite(id) {
-    this.message.reply(MSG_TABLE['VALID_ORDER_ON_EVENTBRITE'](id))
+    this.reply('VALID_ORDER_ON_EVENTBRITE', id)
   }
 
   /**
    * @deprecated
    */
   messageOverCommittedOnThisOrder() {
-    this.message.reply(MSG_TABLE['OVER_COMMITTED_ON_THIS_ORDER']())
+    this.reply('OVER_COMMITTED_ON_THIS_ORDER')
   }
 
   /**
@@ -48,7 +58,7 @@ class DiscoResponse {
    * @deprecated
    */
   messageNotFoundOnEventbrite(id, status) {
-    this.message.reply(MSG_TABLE['NOT_FOUND_ON_EVENTBRITE'](id, status))
+    this.reply('NOT_FOUND_ON_EVENTBRITE', id, status)
   }
 
   /**
@@ -57,9 +67,10 @@ class DiscoResponse {
    * @deprecated
    */
   messageInvalidTicketStatusOnEventbrite(id, status) {
-    typeof(status) === 'string' ?
-      this.message.reply(MSG_TABLE['INVALID_TICKET_STATUS_ON_EVENTBRITE_1'](id, status))
-    : this.message.reply(MSG_TABLE['INVALID_TICKET_STATUS_ON_EVENTBRITE_2'](id))
+    const CODE = typeof(status) === 'string' ?
+    'INVALID_TICKET_STATUS_ON_EVENTBRITE_1' : 'INVALID_TICKET_STATUS_ON_EVENTBRITE_2';
+
+    this.reply(CODE, id, status)
   }
 }
 
