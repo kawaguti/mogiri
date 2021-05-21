@@ -1,13 +1,13 @@
 const {
   isValidOrderOnEventbrite2,
   isForThisEvent2,
-  isOverCommittedOnThisOrder2
+  isWatchChannel
 } = require('./mogiri')
 
 describe('test for isValidOrderOnEventbrite2', () => {
   describe('有効番号の時に', () => {
     const mockDS = {reply: jest.fn()}
-    const result = isValidOrderOnEventbrite2(mockDS, '12', {data: {status: 'placed'}})
+    const result = isValidOrderOnEventbrite2(mockDS, '12', {status: 'placed'})
     it('true が戻ること', () => {
       expect(result).toBe(true)
     })
@@ -21,7 +21,7 @@ describe('test for isValidOrderOnEventbrite2', () => {
   
   describe('無効番号で、データステータスが文字列の時に', () => {
     const mockDS = {reply: jest.fn()}
-    const result = isValidOrderOnEventbrite2(mockDS, '23', {data: {status: '困'}})
+    const result = isValidOrderOnEventbrite2(mockDS, '23', {status: '困'})
     it('false が戻ること', () => {
       expect(result).toBe(false)
     })
@@ -35,7 +35,7 @@ describe('test for isValidOrderOnEventbrite2', () => {
   
   describe('無効番号で、データステータスが文字列ではない時に', () => {
     const mockDS = {reply: jest.fn()}
-    const result = isValidOrderOnEventbrite2(mockDS, '23', {data: {status: []}})
+    const result = isValidOrderOnEventbrite2(mockDS, '23', {status: []})
     it('false が戻ること', () => {
       expect(result).toBe(false)
     })
@@ -51,7 +51,7 @@ describe('test for isValidOrderOnEventbrite2', () => {
 describe('test for isForThisEvent2', () => {
   describe('当該イベントのオーダー番号の時に', () => {
     const mockDS = {reply: jest.fn()}
-    const result = isForThisEvent2(mockDS, 'hoge', {data: {event_id: '34'}}, {eventbrite: {eventId: '34'}})
+    const result = isForThisEvent2(mockDS, 'hoge', {event_id: '34'}, '34')
     it('true が戻ること', () => {
       expect(result).toBe(true)
     })
@@ -62,7 +62,7 @@ describe('test for isForThisEvent2', () => {
 
   describe('当該イベントのオーダー番号ではなかった時に', () => {
     const mockDS = {reply: jest.fn()}
-    const result = isForThisEvent2(mockDS, 'hoge', {data: {event_id: '34'}}, {eventbrite: {eventId: '35'}})
+    const result = isForThisEvent2(mockDS, 'hoge', {event_id: '34'}, '35')
     it('false が戻ること', () => {
       expect(result).toBe(false)
     })
@@ -72,5 +72,20 @@ describe('test for isForThisEvent2', () => {
     it('メッセージコードが期待したものであること', () => {
       expect(mockDS.reply).toBeCalledWith('NOT_FOR_THIS_EVENT', 'hoge')
     })
+  })
+})
+
+describe('test for isWatchChannel', () => {
+  it('受付なら true を戻すこと', () => {
+    expect(isWatchChannel('受付')).toBe(true)
+  })
+  it('実行委員会なら true を戻すこと', () => {
+    expect(isWatchChannel('実行委員会')).toBe(true)
+  })
+  it('品川なら true を戻すこと', () => {
+    expect(isWatchChannel('品川')).toBe(true)
+  })
+  it('三河なら false を戻すこと', () => {
+    expect(isWatchChannel('三河')).toBe(false)
   })
 })

@@ -4,56 +4,67 @@ const MogiriMessage = require('./mogiri_message');
  * 
  * @param {MogiriMessage} mm
  * @param {String} id           eventbrite order id
- * @param {object} response     
+ * @param {object} order        eventbrite order object
  * @returns boolean
  */
-function isValidOrderOnEventbrite2(mm, id, response) {
-  if ( response.data.status === "placed" ) {
-    mm.reply('VALID_ORDER_ON_EVENTBRITE', id);
-    return true;
-  } else {
-    const CODE = typeof(response.data.status) === 'string' ?
-    'INVALID_TICKET_STATUS_ON_EVENTBRITE_1' : 'INVALID_TICKET_STATUS_ON_EVENTBRITE_2';
+function isValidOrderOnEventbrite2(mm, id, order) {
+  const result = order.status === "placed"
+  let options = ['VALID_ORDER_ON_EVENTBRITE', id]
 
-    mm.reply(CODE, id, response.data.status);
-    return false;
+  if (!result) {
+    options = typeof(order.status) === 'string' ?
+    ['INVALID_TICKET_STATUS_ON_EVENTBRITE_1', id, order.status]
+    :
+    ['INVALID_TICKET_STATUS_ON_EVENTBRITE_2', id, order.status]
   }
+
+  mm.reply(...options);
+  return result;
 }
 /**
  * @deprecated
  */
 function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
   const res = new MogiriMessage(message);
-  return isValidOrderOnEventbrite2(res, message, eventbrite_order_id, response)
+  return isValidOrderOnEventbrite2(res, message, eventbrite_order_id, response.data)
 }
 
 /**
  * 
  * @param {MogiriMessage} mm 
- * @param {String} id         eventbrite order id
- * @param {object} response 
- * @param {object} config 
+ * @param {String} id     eventbrite order id
+ * @param {object} order  eventbrite order object 
+ * @param {object} current_event_id focused event of mogiri
  * @returns boolean
  */
-function isForThisEvent2(mm, id, response, config) {
-  if ( response.data.event_id == config.eventbrite.eventId ) {
+function isForThisEvent2(mm, id, order, current_event_id) {
+  const result = order.event_id == current_event_id
+
+  if (result) {
     return true;
-  } else {
-    mm.reply('NOT_FOR_THIS_EVENT', id);
-    return false;
   }
+
+  mm.reply('NOT_FOR_THIS_EVENT', id);
+  return false;
 }
+
 /**
  * @deprecated
  */
 function isForThisEvent(message, eventbrite_order_id, response, config) {
   const res = new MogiriMessage(message);
-  return isForThisEvent2(res, eventbrite_order_id, response, config)
+  return isForThisEvent2(res, eventbrite_order_id, response.data, config.eventbrite.eventId)
+}
+
+const W_CHANNELS = ['受付', '実行委員会', '品川']
+function isWatchChannel(channel_name) {
+  return W_CHANNELS.includes(channel_name)
 }
 
 module.exports = {
   isValidOrderOnEventbrite,
   isValidOrderOnEventbrite2,
   isForThisEvent2,
-  isForThisEvent
+  isForThisEvent,
+  isWatchChannel
 }

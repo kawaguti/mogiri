@@ -7,7 +7,7 @@ const D = require('dumpjs');
 const config = require('config');
 const {logger} = require('./src/logger')
 const {dumpAttendeesOnThisOrder, dumpOrderStatus, dumpCurrentStore} = reqire('./src/matsumoto')
-const {isValidOrderOnEventbrite, isForThisEvent} = require('./src/mogiri')
+const {isValidOrderOnEventbrite, isForThisEvent, isWatchChannel} = require('./src/mogiri')
 
 var { order_limits, order_attendees, fs } = restoreOrders();
 
@@ -17,13 +17,9 @@ client.once('ready', () => {
 
 client.on('message', message => {
   if( message.author.bot) return;
-  
+
   console.log("channel: " + message.channel.name);
-  if( !(
-      message.channel.name === "受付" || 
-      message.channel.name === "実行委員会" || 
-      message.channel.name === "品川"
-      )) return;
+  if(!isWatchChannel(message.channel.name)) return;
 
   const kojima = new Unjash()
   const tsukkomi = kojima.dispatch(message.content)
