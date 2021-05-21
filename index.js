@@ -1,11 +1,12 @@
 const Discord = require('discord.js');
-const DiscoResponse = require('./src/disco_response');
+const MogiriMessage = require('./src/mogiri_message');
 const client = new Discord.Client();
 const axios = require('axios');
 const D = require('dumpjs');
 const config = require('config');
 const {logger} = require('./src/logger')
 const {dumpAttendeesOnThisOrder, dumpOrderStatus, dumpCurrentStore} = reqire('./src/matsumoto')
+const {isValidOrderOnEventbrite, isForThisEvent} = require('./src/mogiri')
 
 var { order_limits, order_attendees, fs } = restoreOrders();
 
@@ -70,15 +71,15 @@ client.on('message', message => {
         })
         .catch(function (error) {
           logger.debug(error);
-          const dp = new DiscoResponse(message);
-          dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
+          const mm = new MogiriMessage(message);
+          mm.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
         })    
       }
     })
     .catch(function (error) {
       logger.debug(error);
-      const dp = new DiscoResponse(message);
-      dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
+      const mm = new MogiriMessage(message);
+      mm.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
     })
   }
 })
@@ -99,30 +100,6 @@ app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
 
-function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
-  const dp = new DiscoResponse(message);
-  if ( response.data.status === "placed" ) {
-    dp.reply('VALID_ORDER_ON_EVENTBRITE', eventbrite_order_id);
-    return true;
-  } else {
-    const CODE = typeof(response.data.status) === 'string' ?
-    'INVALID_TICKET_STATUS_ON_EVENTBRITE_1' : 'INVALID_TICKET_STATUS_ON_EVENTBRITE_2';
-
-    dp.reply(CODE, eventbrite_order_id, response.data.status);
-    return false;
-  }
-}
-
-function isForThisEvent(message, eventbrite_order_id, response) {
-  if ( response.data.event_id == config.eventbrite.eventId ) {
-    return true;
-  } else {
-    const dp = new DiscoResponse(message);
-    dp.reply('NOT_FOR_THIS_EVENT', eventbrite_order_id);
-    return false;
-  }
-}
-
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
   if ( order_attendees[eventbrite_order_id] === undefined) { 
     message.reply(eventbrite_order_id + "は初めての問い合わせです。");
@@ -137,8 +114,8 @@ function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
     return false;
   }
 
-  const dp = new DiscoResponse(message);
-  dp.reply('OVER_COMMITTED_ON_THIS_ORDER');
+  const mm = new MogiriMessage(message);
+  mm.reply('OVER_COMMITTED_ON_THIS_ORDER');
   return true;
 }
 
