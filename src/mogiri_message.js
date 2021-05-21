@@ -29,26 +29,26 @@ message: {
 class MogiriMessage {
   MSG_TABLE = {
     'NOT_FOR_THIS_EVENT':
-      (id) => `${id}は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)`,
+      (...args) => `${args[0]}は有効なEventbriteオーダー番号ではありません。(他のイベントのチケット)`,
   
     'VALID_ORDER_ON_EVENTBRITE':
-      (id) => `${id}は有効なEventbriteオーダー番号です。`,
+      (...args) => `${args[0]}は有効なEventbriteオーダー番号です。`,
   
     'OVER_COMMITTED_ON_THIS_ORDER':
-      () => 'あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。',
+      (...args) => 'あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。',
   
     'NOT_FOUND_ON_EVENTBRITE':
-      (id, status) => `あら、${id}はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(${status})`,
+      (...args) => `あら、${args[0]}はEventbrite上に見当たりませんでした。10桁のOrder番号をご確認ください。(${args[1]})`,
   
     'INVALID_TICKET_STATUS_ON_EVENTBRITE_1':
-      (id, status) => `${id}は現在、有効ではありません。 status=${status}`,
+      (...args) => `${args[0]}は現在、有効ではありません。 status=${args[1]}`,
   
     'INVALID_TICKET_STATUS_ON_EVENTBRITE_2':
-      (id) => `${id}は現在、有効ではありません。`,
+      (...args) => `${args[0]}は現在、有効ではありません。`,
   }
 
   /**
-   * Mogiri メッセージジェネレータ
+   * Mogiri メッセージクリエーター
    * @param {object} message Discord Message Object
    */
   constructor(message) {
