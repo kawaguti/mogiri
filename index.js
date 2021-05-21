@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const Unjash = require('./src/unjash');
 const MogiriMessage = require('./src/mogiri_message');
 const client = new Discord.Client();
 const axios = require('axios');
@@ -24,15 +25,9 @@ client.on('message', message => {
       message.channel.name === "品川"
       )) return;
 
-
-  const re1 = /大島さん/;
-  if ( re1.test(message.content) ){
-    message.reply('児島だよ');
-  }
-  const re2 = /児島さん/;
-  if ( re2.test(message.content) ){
-    message.reply('そうだよ');
-  }
+  const kojima = new Unjash()
+  const tsukkomi = kojima.dispatch(message.content)
+  tsukkomi && message.reply(tsukkomi)
 
   //dumpCurrentStore(message);
 
