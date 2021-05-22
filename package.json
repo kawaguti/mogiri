@@ -4,8 +4,10 @@
   "description": "Conference reception bot for Discord with Eventbrite",
   "main": "index.js",
   "scripts": {
+    "start": "NODE_ENV=development node index.js",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "mockdb": "json-server -r mockdb/route.json mockdb/data.json"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,9 @@
     "dumpjs": "^0.2.1",
     "express": "^4.17.1",
     "jest": "^26.6.3",
-    "log4js": "^6.3.0",
-    "npm": "^6.14.13"
+    "log4js": "^6.3.0"
+  },
+  "devDependencies": {
+    "json-server": "^0.16.3"
   }
 }

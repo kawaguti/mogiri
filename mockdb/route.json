@@ -1,0 +1,5 @@
+{
+  "/v3/orders/*/attendees": "/$1",
+  "/v3/orders/*": "/orders/$1",
+  "/v3/orders": "/orders"
+}

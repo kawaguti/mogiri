@@ -1,3 +1,4 @@
+const fs = require('fs');
 const Discord = require('discord.js');
 const Unjash = require('./src/unjash');
 const MogiriMessage = require('./src/mogiri_message');
@@ -6,10 +7,13 @@ const axios = require('axios');
 const D = require('dumpjs');
 const config = require('config');
 const {logger} = require('./src/logger')
-const {dumpAttendeesOnThisOrder, dumpOrderStatus, dumpCurrentStore} = reqire('./src/matsumoto')
+const {dumpAttendeesOnThisOrder, dumpOrderStatus, dumpCurrentStore} = require('./src/matsumoto')
 const {isValidOrderOnEventbrite, isForThisEvent, isWatchChannel} = require('./src/mogiri')
 
-var { order_limits, order_attendees, fs } = restoreOrders();
+const EVENTBRITE_HOST = ('development', 'test').includes(process.env.NODE_ENV) ?
+  'http://localhost:3000' : 'https://www.eventbriteapi.com'
+
+var { order_limits, order_attendees } = restoreOrders();
 
 client.once('ready', () => {
   logger.debug('This bot is online!');
@@ -35,7 +39,7 @@ client.on('message', message => {
       return;
     }
     
-    axios.get('https://www.eventbriteapi.com/v3/orders/' 
+    axios.get(`${EVENTBRITE_HOST}/v3/orders/`
           + eventbrite_order_id, 
             { headers: {
               Authorization: `Bearer ${config.eventbrite.privateKey}`,
@@ -47,7 +51,7 @@ client.on('message', message => {
       if ( isForThisEvent(message, eventbrite_order_id, response) &&
           isValidOrderOnEventbrite(message, eventbrite_order_id, response)) {
 
-        axios.get('https://www.eventbriteapi.com/v3/orders/' 
+        axios.get(`${EVENTBRITE_HOST}/v3/orders/`
                   + eventbrite_order_id
                   + '/attendees/', 
                   { headers: {
@@ -147,7 +151,6 @@ function addOrder(eventbrite_order_id, response, message) {
 }
 
 function restoreOrders() {
-  const fs = require('fs');
   let order_limits = {};
   let order_attendees = {};
   logger.debug("dataFilePath: " + config.data.filePath);
@@ -176,5 +179,5 @@ function restoreOrders() {
       }
     });
   });
-  return { order_limits, order_attendees, fs };
+  return { order_limits, order_attendees };
 }
