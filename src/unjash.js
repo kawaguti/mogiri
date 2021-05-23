@@ -1,4 +1,6 @@
-class Unjash {
+const MogiriBase = require('./mogiri_base')
+
+class Unjash extends MogiriBase {
   NETAS = [{
     pattern: /大島さん/,
     handler: (content) => '児島だよ'
@@ -7,6 +9,10 @@ class Unjash {
     handler: (content) => 'そうだよ'
   }]
 
+  /**
+   * @param {String} content
+   * @deprecated
+   */
   dispatch(content) {
     for (const it of this.NETAS) {
       if (it.pattern.test(content)) {
@@ -15,6 +21,17 @@ class Unjash {
     }
 
     return null
+  }
+
+  /**
+   * @param {String} content
+   */
+  commit(content) {
+    let msgs = this.NETAS
+    .map(it => it.pattern.test(content) && it.handler(content))
+    .filter(it => it !== false)
+
+    msgs.forEach(it => this.message.reply(it))
   }
 }
 
