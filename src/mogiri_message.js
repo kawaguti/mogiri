@@ -25,6 +25,7 @@ message: {
 
 /**
  * Mogiri メッセージクリエーター
+ * @deprecated
  */
 class MogiriMessage {
   MSG_TABLE = {
