@@ -106,7 +106,7 @@ describe('eventbrite へのチケットの問い合わせについて', () => {
 })
 
 describe('チケット倉庫について', () => {
-  const target = new TicketWarehouse(TEST_DATA_FILE, 'x01')
+  const target = new TicketWarehouse(TEST_DATA_FILE, 'y01')
   beforeAll(() => {
     target.reset()
   })

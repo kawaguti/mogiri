@@ -3,8 +3,9 @@ const axios = require('axios');
 const config = require('config');
 const {MogiriError, NotFoundTicketError, NotForThisEventError, InvalidTicketStatusError, UnknownNetworkError} = require('./exception')
 
-const EVENTBRITE_HOST = ('development', 'test').includes(process.env.NODE_ENV)
+const EVENTBRITE_HOST = ['development', 'test'].includes(process.env.NODE_ENV)
   ? 'http://localhost:3000' : 'https://www.eventbriteapi.com'
+
 
 /**
  * Eventbrite チケット
@@ -107,7 +108,7 @@ class TicketWarehouse {
   constructor(filepath, event_id) {
     this._storage   = new LocalStorage(filepath)
     this._event_id  = event_id
-    this._warehouse = JSON.parse(this._storage.getItem(event_id))
+    this._warehouse = JSON.parse(this._storage.getItem(event_id)) ?? {}
   }
 
   //TODO: 永続化の必要なパターンを網羅されてる?

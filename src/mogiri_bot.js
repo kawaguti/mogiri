@@ -2,7 +2,7 @@ const config = require('config');
 const MogiriBase = require('./mogiri_base')
 const {logger} = require('./logger')
 const {dumpAttendeesOnThisOrder} = require('./matsumoto')
-const {TicketWarehouse} = require('./ticket_man')
+const {TicketWarehouse, EbTicket} = require('./ticket_man')
 
 const DATA_PATH = './data/test_data'
 const EVENT_ID = config.eventbrite.eventId
@@ -29,24 +29,24 @@ class MogiriBot extends MogiriBase {
         message.reply('あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。');
         return;
       }
-    }
 
-    if (eb_ticket.isRegisterd(message.author.username)) {
-      message.reply(`${ticket} で ${message.author.username} さんは前に処理した記録がありますが、念のためもう一回確認しますね。`);
-    } else {
-      //MEMO: 同じチケット番号で二人目の登録のケース
-      message.reply(`${ticket} は初めての登録です。`);
+      if (eb_ticket.isRegisterd(message.author.username)) {
+        //MEMO: 同じチケット番号で登録済みのケース
+        message.reply(`${ticket} で ${message.author.username} さんは前に処理した記録がありますが、念のためもう一回確認しますね。`);
+      } else {
+        //MEMO: 同じチケット番号で未登録のケース (二人目以降)
+        message.reply(`${ticket} は初めての登録です。`);
+      }
+      message.reply(eb_ticket.info);
     }
-  
-    message.reply(eb_ticket.info);
 
     try {
       //MEMO: アンダーコミットの時に eventbrite に問い合わせてしまう
-      const eb_ticket = await EbTicket.reference(ticket)
+      const eb_ticket = await EbTicket.reference(ticket, EVENT_ID)
       message.reply(`${ticket}は有効なEventbriteオーダー番号です。`)
 
-      dumpAttendeesOnThisOrder(response);
-      eb_ticket.addAttendance(message.author.username);
+      console.log(message)
+      eb_ticket.addAttendance(message.author?.username);
       warehouse.addEbTicket(eb_ticket);
       setDiscordRole(message);
       message.reply(eb_ticket.info);

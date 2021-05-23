@@ -27,7 +27,7 @@ class InvalidTicketStatusError extends MogiriError {
 class UnknownNetworkError extends Error {
   constructor(status, ...params) {
     super(...params)
-    this.message = `おっと、なんか通信エラーが発生したようだ。困ったぞ? - ${status}`
+    this.message = `お腹が痛い…。困った…。 - (${status}) ${this.name} ${this.message}`
   }
 }
 
