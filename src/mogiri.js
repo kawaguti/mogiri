@@ -6,6 +6,7 @@ const MogiriMessage = require('./mogiri_message');
  * @param {String} id           eventbrite order id
  * @param {object} order        eventbrite order object
  * @returns boolean
+ * @deprecated
  */
 function isValidOrderOnEventbrite2(mm, id, order) {
   const result = order.status === "placed"
@@ -36,6 +37,7 @@ function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
  * @param {object} order  eventbrite order object 
  * @param {object} current_event_id focused event of mogiri
  * @returns boolean
+ * @deprecated
  */
 function isForThisEvent2(mm, id, order, current_event_id) {
   const result = order.event_id == current_event_id

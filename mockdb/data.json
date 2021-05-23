@@ -2,13 +2,37 @@
   "orders": [
     {
       "id": "1234567890",
-      "attendees": [1, 2, 3]
+      "event_id": "x01",
+      "status": "placed"
     },
     {
       "id": "9876543210",
-      "attendees": [9, 8, 7]
+      "event_id": "x01",
+      "status": "placed"
+    },
+    {
+      "id": "8888888888",
+      "event_id": "yyy",
+      "status": "placed"
+    },
+    {
+      "id": "7777777777",
+      "event_id": "x01",
+      "status": "over"
     }
   ],
-  "1234567890": [1, 2, 3],
-  "9876543210": [9, 8, 7]
+  "attendees": [
+    {
+      "id": "1234567890",
+      "attendees": {"length": 2}
+    },
+    {
+      "id": "9876543210",
+      "attendees": {"length": 1}
+    },
+    {
+      "id": "8888888888",
+      "attendees": {"length": 1}
+    }
+  ]
 }
