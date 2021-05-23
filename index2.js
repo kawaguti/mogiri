@@ -3,6 +3,7 @@ const client = new Discord.Client();
 const config = require('config');
 const {logger} = require('./src/logger')
 const Unjash = require('./src/unjash');
+const MilkBoy = require('./src/milk_boy');
 const MogiriBot = require('./src/mogiri_bot');
 const {isWatchChannel} = require('./src/mogiri');
 
@@ -16,8 +17,8 @@ client.on('message', async message => {
   console.log("channel: " + message.channel.name);
   if(!isWatchChannel(message.channel.name)) return;
 
-  const BOTS = [Unjash, MogiriBot]
-  BOTS.forEach(CLS => await (new CLS(message)).commit(message.content))
+  const BOTS = [Unjash, MogiriBot, MilkBoy]
+  BOTS.forEach(async CLS => await (new CLS(message)).commit(message.content))
 })
 
 client.login(config.discord.privateKey);
