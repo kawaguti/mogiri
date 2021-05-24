@@ -6,6 +6,7 @@ const BotUnjash = require('./src/bot_unjash');
 const BotMilkBoy = require('./src/bot_milk_boy');
 const BotTakatoshi = require('./src/bot_takatoshi');
 const BotGacha = require('./src/bot_gacha');
+const BotDoctorX = require('./src/bot_doctorx');
 const MogiriBot = require('./src/mogiri_bot');
 const {isWatchChannel} = require('./src/mogiri');
 
@@ -19,7 +20,7 @@ client.on('message', async message => {
   console.log("channel: " + message.channel.name);
   if(!isWatchChannel(message.channel.name)) return;
 
-  const BOTS = [BotUnjash, MogiriBot, BotMilkBoy, BotTakatoshi, BotGacha]
+  const BOTS = [BotUnjash, MogiriBot, BotMilkBoy, BotTakatoshi, BotGacha, BotDoctorX]
   BOTS.forEach(async CLS => await (new CLS(message)).commit(message.content))
 })
 
