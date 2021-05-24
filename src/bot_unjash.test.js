@@ -1,10 +1,10 @@
-const Unjash = require('./unjash')
+const BotUnjash = require('./bot_unjash')
 
 /**
  * @deprecated
  */
 describe('アンジャッシュクラスについて', () => {
-  const target = new Unjash()
+  const target = new BotUnjash()
   it('ボケに突っ込むこと1', () => {
     expect(target.dispatch('大島さん')).toEqual('児島だよ')
   })
@@ -18,7 +18,7 @@ describe('アンジャッシュクラスについて', () => {
 
 describe('アンジャッシュクラスについて', () => {
   const mockMsg = {reply: jest.fn()}
-  const target = new Unjash(mockMsg)
+  const target = new BotUnjash(mockMsg)
 
   beforeEach(() => {mockMsg.reply.mockClear()})
   it('ボケに突っ込むこと1', () => {

@@ -1,6 +1,6 @@
 const MogiriBase = require('./mogiri_base')
 
-class Unjash extends MogiriBase {
+class BotUnjash extends MogiriBase {
   NETAS = [{
     pattern: /大島さん/,
     handler: (content) => '児島だよ'
@@ -36,4 +36,4 @@ class Unjash extends MogiriBase {
 }
 
 
-module.exports = Unjash;
+module.exports = BotUnjash;

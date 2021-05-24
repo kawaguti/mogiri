@@ -1,4 +1,4 @@
-const MilkBoy = require('./milk_boy')
+const MilkBoy = require('./bot_milk_boy')
 
 describe('ミルクボーイクラスについて', () => {
   const mockMsg = {reply: jest.fn()}
@@ -8,17 +8,17 @@ describe('ミルクボーイクラスについて', () => {
   it('ボケに突っ込むこと1', () => {
     target.commit('忘れた')
     expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith('ほな、一緒に考えてあげよ。')
+    expect(mockMsg.reply).toBeCalledWith('ほな、オレが一緒に考えてあげよ。')
   })
   it('ボケに突っ込むこと2', () => {
     target.commit('忘れてしまった')
     expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith('ほな、一緒に考えてあげよ。')
+    expect(mockMsg.reply).toBeCalledWith('ほな、オレが一緒に考えてあげよ。')
   })
   it('ボケに突っ込むこと3', () => {
     target.commit('忘れました')
     expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith('ほな、一緒に考えてあげよ。')
+    expect(mockMsg.reply).toBeCalledWith('ほな、オレが一緒に考えてあげよ。')
   })
   it('ボケに突っ込むこと4', () => {
     target.commit('違う')
