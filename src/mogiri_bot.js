@@ -4,7 +4,8 @@ const {logger} = require('./logger')
 const {dumpAttendeesOnThisOrder} = require('./matsumoto')
 const {TicketWarehouse, EbTicket} = require('./ticket_man')
 
-const DATA_PATH = './data/test_data'
+const DATA_PATH = ['development', 'test'].includes(process.env.NODE_ENV) ?
+'./data/test_data' : './data/orders_attendees'
 const EVENT_ID = config.eventbrite.eventId
 
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
@@ -47,7 +48,6 @@ class MogiriBot extends MogiriBase {
       const eb_ticket = await EbTicket.reference(ticket, EVENT_ID)
       message.reply(`${ticket}は有効なEventbriteオーダー番号です。`)
 
-      console.log(message)
       eb_ticket.addAttendance(message.author?.username);
       warehouse.addEbTicket(eb_ticket);
       setDiscordRole(message);

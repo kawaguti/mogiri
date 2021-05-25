@@ -1,3 +1,4 @@
+const config = require('config');
 const MogiriMessage = require('./mogiri_message');
 
 /**
@@ -27,7 +28,7 @@ function isValidOrderOnEventbrite2(mm, id, order) {
  */
 function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
   const res = new MogiriMessage(message);
-  return isValidOrderOnEventbrite2(res, message, eventbrite_order_id, response.data)
+  return isValidOrderOnEventbrite2(res, eventbrite_order_id, response.data)
 }
 
 /**
@@ -53,7 +54,7 @@ function isForThisEvent2(mm, id, order, current_event_id) {
 /**
  * @deprecated
  */
-function isForThisEvent(message, eventbrite_order_id, response, config) {
+function isForThisEvent(message, eventbrite_order_id, response) {
   const res = new MogiriMessage(message);
   return isForThisEvent2(res, eventbrite_order_id, response.data, config.eventbrite.eventId)
 }

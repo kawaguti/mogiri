@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const Unjash = require('./src/unjash');
+const Unjash = require('./src/bot_unjash');
 const MogiriMessage = require('./src/mogiri_message');
 const client = new Discord.Client();
 const axios = require('axios');
@@ -9,8 +9,15 @@ const config = require('config');
 const {logger} = require('./src/logger')
 const {dumpAttendeesOnThisOrder, dumpOrderStatus, dumpCurrentStore} = require('./src/matsumoto')
 const {isValidOrderOnEventbrite, isForThisEvent, isWatchChannel} = require('./src/mogiri')
+const {TicketWarehouse, EbTicket} = require('./src/ticket_man')
 
-const EVENTBRITE_HOST = ('development', 'test').includes(process.env.NODE_ENV) ?
+const DATA_PATH = ['development', 'test'].includes(process.env.NODE_ENV) ?
+'./data/test_data' : './data/orders_attendees'
+const EVENT_ID = config.eventbrite.eventId
+
+const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
+
+const EVENTBRITE_HOST = ['development', 'test'].includes(process.env.NODE_ENV) ?
   'http://localhost:3000' : 'https://www.eventbriteapi.com'
 
 var { order_limits, order_attendees } = restoreOrders();
@@ -176,6 +183,12 @@ function restoreOrders() {
         } else {
           order_attendees[eventbrite_order_id].add(order[2]);
         }
+        const eb_ticket = warehouse.getEbTicket(eventbrite_order_id) ?? new EbTicket({
+          id: eventbrite_order_id,
+          limit: order[1]
+        })
+        eb_ticket.addAttendance(order[2])
+        warehouse.addEbTicket(eb_ticket)
       }
     });
   });
