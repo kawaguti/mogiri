@@ -2,7 +2,7 @@ const MogiriBase = require('./mogiri_base')
 
 class BotMilkBoy extends MogiriBase {
   static PATTERNS = [
-    /忘れ(た|てしまった|ました)/,
+    /忘れ(た|ました|てしまった|てもーた)/,
     /違う/
   ]
 

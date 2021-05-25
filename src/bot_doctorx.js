@@ -1,7 +1,7 @@
 const MogiriBase = require('./mogiri_base')
 
 class BotDoctorX extends MogiriBase {
-  static PATTERNS = [/(てくだ|な)さい/, /できますか/]
+  static PATTERNS = [/(てくだ|な)さい/, /ますか(\?|？)/]
 
   /**
    * @param {String} content

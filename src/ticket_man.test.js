@@ -111,10 +111,10 @@ describe('チケット倉庫について', () => {
     target.reset()
   })
 
-  xit('', () => {
+  it('', () => {
     expect(target.getEbTicket('9999')).toBeNull()
   })
-  xit('一件追加できること', () => {
+  it('一件追加できること', () => {
     const ticket = new EbTicket({id: '11', limit: 2, attendees: []})
     target.addEbTicket(ticket)
     expect(target.getEbTicket('11')).toEqual(ticket)
