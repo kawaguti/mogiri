@@ -110,22 +110,26 @@ describe('チケット倉庫について', () => {
   beforeAll(() => {
     target.reset()
   })
-  it('', () => {
+
+  xit('', () => {
     expect(target.getEbTicket('9999')).toBeNull()
   })
-  it('一件追加できること', () => {
+  xit('一件追加できること', () => {
     const ticket = new EbTicket({id: '11', limit: 2, attendees: []})
     target.addEbTicket(ticket)
     expect(target.getEbTicket('11')).toEqual(ticket)
   })
   it('二件追加で一件目を取れること', () => {
     const tickets = [
-      new EbTicket({id: '111', limit: 2, attendees: []}),
-      new EbTicket({id: '223', limit: 1, attendees: []})
+      new EbTicket({id: '111', limit: 1, attendees: [1]}),
+      new EbTicket({id: '223', limit: 1, attendees: []}),
+      new EbTicket({id: '111', limit: 2, attendees: [2]})
     ]
 
-    target.addEbTicket(tickets[0])
-    target.addEbTicket(tickets[1])
-    expect(target.getEbTicket('111')).toEqual(tickets[0])
+    tickets.forEach(it => target.addEbTicket(it))
+    expect(target.getEbTicket('111'))
+      .toEqual(new EbTicket({id: '111', limit: 2, attendees: [1, 2]}))
+    expect(target.getEbTicket('223'))
+      .toEqual(new EbTicket({id: '223', limit: 1, attendees: []}))
   })
 })

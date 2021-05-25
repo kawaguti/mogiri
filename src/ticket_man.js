@@ -111,10 +111,16 @@ class TicketWarehouse {
     this._warehouse = JSON.parse(this._storage.getItem(event_id)) ?? {}
   }
 
-  //TODO: 永続化の必要なパターンを網羅されてる?
   addEbTicket(ticket) {
     this._warehouse = this._warehouse ?? {}
+
+    // チケットが既存の場合は情報更新
+    if (ticket.id in this._warehouse) {
+      this._warehouse[ticket.id].attendees.forEach(it => ticket.addAttendance(it))
+      this._warehouse[ticket.id].limit = ticket.limit
+    }
     this._warehouse[ticket.id] = ticket.raw
+
     this.freeze()
   }
 
@@ -128,6 +134,7 @@ class TicketWarehouse {
   }
 
   reset() {
+    this._warehouse = {}
     this._storage.clear()
   }
 }
