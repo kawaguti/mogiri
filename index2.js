@@ -21,7 +21,10 @@ client.on('message', async message => {
   if(!isWatchChannel(message.channel.name)) return;
 
   const BOTS = [BotUnjash, MogiriBot, BotMilkBoy, BotTakatoshi, BotGacha, BotDoctorX]
-  BOTS.forEach(async CLS => await (new CLS(message)).commit(message.content))
+  BOTS.forEach(async CLS => {
+    CLS.PATTERNS.find(it => it.test(message.content)) &&
+      await (new CLS(message)).commit(message.content)
+  })
 })
 
 client.login(config.discord.privateKey);

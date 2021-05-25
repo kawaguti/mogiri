@@ -1,6 +1,11 @@
 const MilkBoy = require('./bot_milk_boy')
 
 describe('ミルクボーイクラスについて', () => {
+  it('一つ以上の受付けパターンが定義されていること', () => {
+    expect(MilkBoy.PATTERNS).toBeInstanceOf(Array)
+    expect(MilkBoy.PATTERNS.length).toBeGreaterThan(0)
+  })
+
   const mockMsg = {reply: jest.fn()}
   const target = new MilkBoy(mockMsg)
 

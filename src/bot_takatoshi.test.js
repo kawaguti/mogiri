@@ -1,6 +1,11 @@
 const BotTakatoshi = require('./bot_takatoshi')
 
-describe('ミルクボーイクラスについて', () => {
+describe('タカトシクラスについて', () => {
+  it('一つ以上の受付けパターンが定義されていること', () => {
+    expect(BotTakatoshi.PATTERNS).toBeInstanceOf(Array)
+    expect(BotTakatoshi.PATTERNS.length).toBeGreaterThan(0)
+  })
+
   const mockMsg = {reply: jest.fn()}
   const target = new BotTakatoshi(mockMsg)
 

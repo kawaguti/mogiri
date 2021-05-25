@@ -17,6 +17,11 @@ describe('アンジャッシュクラスについて', () => {
 })
 
 describe('アンジャッシュクラスについて', () => {
+  it('一つ以上の受付けパターンが定義されていること', () => {
+    expect(BotUnjash.PATTERNS).toBeInstanceOf(Array)
+    expect(BotUnjash.PATTERNS.length).toBeGreaterThan(0)
+  })
+
   const mockMsg = {reply: jest.fn()}
   const target = new BotUnjash(mockMsg)
 
@@ -24,17 +29,11 @@ describe('アンジャッシュクラスについて', () => {
   it('ボケに突っ込むこと1', () => {
     target.commit('大島さん')
     expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith('児島だよ')
+    expect(mockMsg.reply).toBeCalledWith('児島だよ!')
   })
   it('ボケに突っ込むこと2', () => {
     target.commit('児島さん')
     expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith('そうだよ')
-  })
-  it('ボケに突っ込むこと2', () => {
-    target.commit('児島さん、大島さん')
-    expect(mockMsg.reply).toBeCalledTimes(2)
-    expect(mockMsg.reply).toBeCalledWith('児島だよ')
     expect(mockMsg.reply).toBeCalledWith('そうだよ')
   })
 })

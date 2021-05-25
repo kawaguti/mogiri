@@ -1,25 +1,23 @@
 const MogiriBase = require('./mogiri_base')
 
-class MilkBoy extends MogiriBase {
-  NETAS = [{
-    pattern: /忘れ(た|てしまった|ました)/,
-    handler: (content) => 'ほな、オレが一緒に考えてあげよ。'
-  }, {
-    pattern: /違う/,
-    handler: (content) => '違うことあれへんがな!!'
-  }]
+class BotMilkBoy extends MogiriBase {
+  static PATTERNS = [
+    /忘れ(た|てしまった|ました)/,
+    /違う/
+  ]
 
   /**
    * @param {String} content
    */
-  commit(content) {
-    let msgs = this.NETAS
-    .map(it => it.pattern.test(content) && it.handler(content))
-    .filter(it => it !== false)
-
-    msgs.forEach(it => this.message.reply(it))
+  async commit(content) {
+    const MSGS = [
+      `ほな、オレが一緒に考えてあげよ。`,
+      `違うことあれへんがな!!`
+    ]
+    const num = BotMilkBoy.PATTERNS.findIndex(it => it.test(content))
+    this.message.reply(MSGS[num])
   }
 }
 
 
-module.exports = MilkBoy;
+module.exports = BotMilkBoy;

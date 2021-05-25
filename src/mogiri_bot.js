@@ -10,6 +10,8 @@ const EVENT_ID = config.eventbrite.eventId
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
 class MogiriBot extends MogiriBase {
+  static PATTERNS = [/#(\d{10})([^\d]|$)/]
+
   /**
    * @param {String} content
    */

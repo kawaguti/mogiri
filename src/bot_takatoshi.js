@@ -1,23 +1,21 @@
 const MogiriBase = require('./mogiri_base')
 
 class BotTakatoshi extends MogiriBase {
-  NETAS = [{
-    pattern: /ミルク/,
-    handler: (content) => '欧米か!'
-  }, {
-    pattern: /うっかり/,
-    handler: (content) => '八兵衛か!'
-  }]
+  static PATTERNS = [
+    /ミルク/,
+    /うっかり/
+  ]
 
   /**
    * @param {String} content
    */
-  commit(content) {
-    let msgs = this.NETAS
-    .map(it => it.pattern.test(content) && it.handler(content))
-    .filter(it => it !== false)
-
-    msgs.forEach(it => this.message.reply(it))
+  async commit(content) {
+    const MSGS = [
+      `欧米か!`,
+      `八兵衛か!`
+    ]
+    const num = BotTakatoshi.PATTERNS.findIndex(it => it.test(content))
+    this.message.reply(MSGS[num])
   }
 }
 
