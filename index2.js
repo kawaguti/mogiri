@@ -2,11 +2,8 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const config = require('config');
 const {logger} = require('./src/logger')
-const BotUnjash = require('./src/bot_unjash');
-const BotMilkBoy = require('./src/bot_milk_boy');
-const BotTakatoshi = require('./src/bot_takatoshi');
+const BotTsukkomi = require('./src/bot_tsukkomi')
 const BotGacha = require('./src/bot_gacha');
-const BotDoctorX = require('./src/bot_doctorx');
 const MogiriBot = require('./src/mogiri_bot');
 const {isWatchChannel} = require('./src/mogiri');
 
@@ -20,7 +17,7 @@ client.on('message', async message => {
   console.log("channel: " + message.channel.name);
   if(!isWatchChannel(message.channel.name)) return;
 
-  const BOTS = [BotUnjash, MogiriBot, BotMilkBoy, BotTakatoshi, BotGacha, BotDoctorX]
+  const BOTS = [BotTsukkomi, MogiriBot, BotGacha]
   BOTS.forEach(async CLS => {
     CLS.PATTERNS.find(it => it.test(message.content)) &&
       await (new CLS(message)).commit(message.content)

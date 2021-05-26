@@ -1,14 +1,14 @@
-const BotDoctorX = require('./bot_doctorx.js')
+const BotTsukkomi = require('./bot_tsukkomi.js')
 
-describe('ドクターX クラスについて', () => {
+describe('ツッコミボットについて', () => {
   it('一つ以上の受付けパターンが定義されていること', () => {
-    expect(BotDoctorX.PATTERNS).toBeInstanceOf(Array)
-    expect(BotDoctorX.PATTERNS.length).toBeGreaterThan(0)
+    expect(BotTsukkomi.PATTERNS).toBeInstanceOf(Array)
+    expect(BotTsukkomi.PATTERNS.length).toBeGreaterThan(0)
   })
 
   describe('', () => {
     const mockMsg = {reply: jest.fn()}
-    const target = new BotDoctorX(mockMsg)
+    const target = new BotTsukkomi(mockMsg)
     const EXP = /(いたしませ〜ん|それって医師免許、いりませんよね)/
   
     beforeEach(() => {mockMsg.reply.mockClear()})
@@ -25,7 +25,7 @@ describe('ドクターX クラスについて', () => {
     it('できますか', () => {
       target.commit('できますか?')
       expect(mockMsg.reply).toBeCalledTimes(1)
-      expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('失敗しませんから'))
+      expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('失敗し'))
     })
   })
 })
