@@ -1,20 +1,26 @@
+const fs = require('fs');
 const Discord = require('discord.js');
-const DiscoResponse = require('./src/disco_response');
+const Unjash = require('./src/bot_unjash');
+const MogiriMessage = require('./src/mogiri_message');
 const client = new Discord.Client();
 const axios = require('axios');
 const D = require('dumpjs');
 const config = require('config');
+const {logger} = require('./src/logger')
+const {dumpAttendeesOnThisOrder, dumpOrderStatus, dumpCurrentStore} = require('./src/matsumoto')
+const {isValidOrderOnEventbrite, isForThisEvent, isWatchChannel} = require('./src/mogiri')
+const {TicketWarehouse, EbTicket} = require('./src/ticket_man')
 
-const log4js = require("log4js");
-log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-  },
-  categories: { default: { appenders: ['console'], level: 'debug' } }
-});
-const logger = log4js.getLogger();
+const DATA_PATH = ['development', 'test'].includes(process.env.NODE_ENV) ?
+'./data/test_data' : './data/orders_attendees'
+const EVENT_ID = config.eventbrite.eventId
 
-var { order_limits, order_attendees, fs } = restoreOrders();
+const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
+
+const EVENTBRITE_HOST = ['development', 'test'].includes(process.env.NODE_ENV) ?
+  'http://localhost:3000' : 'https://www.eventbriteapi.com'
+
+var { order_limits, order_attendees } = restoreOrders();
 
 client.once('ready', () => {
   logger.debug('This bot is online!');
@@ -22,23 +28,13 @@ client.once('ready', () => {
 
 client.on('message', message => {
   if( message.author.bot) return;
-  
+
   console.log("channel: " + message.channel.name);
-  if( !(
-      message.channel.name === "受付" || 
-      message.channel.name === "実行委員会" || 
-      message.channel.name === "品川"
-      )) return;
+  if(!isWatchChannel(message.channel.name)) return;
 
-
-  const re1 = /大島さん/;
-  if ( re1.test(message.content) ){
-    message.reply('児島だよ');
-  }
-  const re2 = /児島さん/;
-  if ( re2.test(message.content) ){
-    message.reply('そうだよ');
-  }
+  const kojima = new Unjash()
+  const tsukkomi = kojima.dispatch(message.content)
+  tsukkomi && message.reply(tsukkomi)
 
   //dumpCurrentStore(message);
 
@@ -50,7 +46,7 @@ client.on('message', message => {
       return;
     }
     
-    axios.get('https://www.eventbriteapi.com/v3/orders/' 
+    axios.get(`${EVENTBRITE_HOST}/v3/orders/`
           + eventbrite_order_id, 
             { headers: {
               Authorization: `Bearer ${config.eventbrite.privateKey}`,
@@ -62,7 +58,7 @@ client.on('message', message => {
       if ( isForThisEvent(message, eventbrite_order_id, response) &&
           isValidOrderOnEventbrite(message, eventbrite_order_id, response)) {
 
-        axios.get('https://www.eventbriteapi.com/v3/orders/' 
+        axios.get(`${EVENTBRITE_HOST}/v3/orders/`
                   + eventbrite_order_id
                   + '/attendees/', 
                   { headers: {
@@ -77,15 +73,15 @@ client.on('message', message => {
         })
         .catch(function (error) {
           logger.debug(error);
-          const dp = new DiscoResponse(message);
-          dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
+          const mm = new MogiriMessage(message);
+          mm.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
         })    
       }
     })
     .catch(function (error) {
       logger.debug(error);
-      const dp = new DiscoResponse(message);
-      dp.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
+      const mm = new MogiriMessage(message);
+      mm.reply('NOT_FOUND_ON_EVENTBRITE', eventbrite_order_id, error.response.status);
     })
   }
 })
@@ -106,48 +102,6 @@ app.listen(port, () => {
   logger.debug(`http listening at http://localhost:${port}`)
 })
 
-function isValidOrderOnEventbrite(message, eventbrite_order_id, response) {
-  const dp = new DiscoResponse(message);
-  if ( response.data.status === "placed" ) {
-    dp.reply('VALID_ORDER_ON_EVENTBRITE', eventbrite_order_id);
-    return true;
-  } else {
-    const CODE = typeof(response.data.status) === 'string' ?
-    'INVALID_TICKET_STATUS_ON_EVENTBRITE_1' : 'INVALID_TICKET_STATUS_ON_EVENTBRITE_2';
-
-    dp.reply(CODE, eventbrite_order_id, response.data.status);
-    return false;
-  }
-}
-
-function dumpAttendeesOnThisOrder(response) {
-  logger.debug(D.dump(response.data.attendees));
-}
-
-function dumpOrderStatus(eventbrite_order_id, response) {
-  logger.debug(eventbrite_order_id + ", " + response.status + ", " + response.data.name + ", " + response.data.status);
-  logger.debug(D.dump(response.data));
-  logger.debug("event_id: " + response.data.event_id);
-}
-
-function dumpCurrentStore(message) {
-  logger.debug(message.content);
-  logger.debug(message.author.username);
-
-  logger.debug("order_limits: " + D.dump(order_limits));
-  logger.debug("order_attendees: " + D.dump(order_attendees));
-}
-
-function isForThisEvent(message, eventbrite_order_id, response) {
-  if ( response.data.event_id == config.eventbrite.eventId ) {
-    return true;
-  } else {
-    const dp = new DiscoResponse(message);
-    dp.reply('NOT_FOR_THIS_EVENT', eventbrite_order_id);
-    return false;
-  }
-}
-
 function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
   if ( order_attendees[eventbrite_order_id] === undefined) { 
     message.reply(eventbrite_order_id + "は初めての問い合わせです。");
@@ -162,8 +116,8 @@ function isOverCommittedOnThisOrder(eventbrite_order_id, message) {
     return false;
   }
 
-  const dp = new DiscoResponse(message);
-  dp.reply('OVER_COMMITTED_ON_THIS_ORDER');
+  const mm = new MogiriMessage(message);
+  mm.reply('OVER_COMMITTED_ON_THIS_ORDER');
   return true;
 }
 
@@ -204,7 +158,6 @@ function addOrder(eventbrite_order_id, response, message) {
 }
 
 function restoreOrders() {
-  const fs = require('fs');
   let order_limits = {};
   let order_attendees = {};
   logger.debug("dataFilePath: " + config.data.filePath);
@@ -230,8 +183,14 @@ function restoreOrders() {
         } else {
           order_attendees[eventbrite_order_id].add(order[2]);
         }
+        const eb_ticket = warehouse.getEbTicket(eventbrite_order_id) ?? new EbTicket({
+          id: eventbrite_order_id,
+          limit: order[1]
+        })
+        eb_ticket.addAttendance(order[2])
+        warehouse.addEbTicket(eb_ticket)
       }
     });
   });
-  return { order_limits, order_attendees, fs };
+  return { order_limits, order_attendees };
 }
