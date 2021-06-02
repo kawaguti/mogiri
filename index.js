@@ -1,6 +1,6 @@
 const fs = require('fs');
 const Discord = require('discord.js');
-const Unjash = require('./src/bot_unjash');
+// const Unjash = require('./src/bot_unjash');
 const MogiriMessage = require('./src/mogiri_message');
 const client = new Discord.Client();
 const axios = require('axios');
@@ -32,9 +32,9 @@ client.on('message', message => {
   console.log("channel: " + message.channel.name);
   if(!isWatchChannel(message.channel.name)) return;
 
-  const kojima = new Unjash()
-  const tsukkomi = kojima.dispatch(message.content)
-  tsukkomi && message.reply(tsukkomi)
+  // const kojima = new Unjash()
+  // const tsukkomi = kojima.dispatch(message.content)
+  // tsukkomi && message.reply(tsukkomi)
 
   //dumpCurrentStore(message);
 
