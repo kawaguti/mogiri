@@ -59,7 +59,7 @@ class BotMogiri extends BotBase {
 
   /**
    * ロールを付与する
-   * @throws NotForRoleInGuild
+   * @throws NotFoundRoleInGuild
    */
   atacheDiscordRole() {
     const guild = this.message.guild
