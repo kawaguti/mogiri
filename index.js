@@ -6,13 +6,14 @@ const BotTsukkomi = require('./src/bot_tsukkomi')
 const BotGacha = require('./src/bot_gacha');
 const MogiriBot = require('./src/mogiri_bot');
 
-const W_CHANNELS = ['受付', '実行委員会', '品川', 'bot動作テスト用']
+const W_CHANNELS = config.discord.observation ?? ["受付", "実行委員会", "品川"]
 function isWatchChannel(channel_name) {
   return W_CHANNELS.includes(channel_name)
 }
 
 client.once('ready', () => {
   logger.debug('This bot is online!');
+  logger.debug(`start observating ${W_CHANNELS}`)
 })
 
 client.on('message', async message => {
@@ -27,6 +28,7 @@ client.on('message', async message => {
       await (new CLS(message)).commit(message.content)
   })
 })
+
 
 client.login(config.discord.privateKey);
 

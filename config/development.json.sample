@@ -10,6 +10,7 @@
 
     "discord" : {
         "privateKey" : "{Your Discord Private Key}",
-        "roleForValidUser" : "{Discord Role Name for Valid User}"
+        "roleForValidUser" : "{Discord Role Name for Valid User}",
+        "observation": [{observation channels}]
     }
 }
