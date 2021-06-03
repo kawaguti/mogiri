@@ -47,29 +47,31 @@ class BotMogiri extends BotBase {
 
       eb_ticket.addAttendance(message.author?.username);
       warehouse.addEbTicket(eb_ticket);
-      setDiscordRole(message);
+      this.setDiscordRole();
       message.reply(eb_ticket.info);
     } catch (error) {
       logger.debug(error);
       message.reply(error.message);
     }
   }
-}
 
-function setDiscordRole(message) {
-  const role = message.guild.roles.cache.find(role => role.name === config.discord.roleForValidUser);
-  if (role) {
-    if (message.member.roles.cache.some(role => role.name === config.discord.roleForValidUser)) {
-      logger.info("すでに" + role.name + "のロールをお持ちでした！");
-      message.reply("すでに" + role.name + "のロールをお持ちでした！");
+  setDiscordRole() {
+    const message = this.message
+
+    const role = message.guild.roles.cache.find(role => role.name === config.discord.roleForValidUser);
+    if (role) {
+      if (message.member.roles.cache.some(role => role.name === config.discord.roleForValidUser)) {
+        logger.info("すでに" + role.name + "のロールをお持ちでした！");
+        message.reply("すでに" + role.name + "のロールをお持ちでした！");
+      } else {
+        message.member.roles.add(role);
+        logger.info(role.name + "のロールをつけました！");
+        message.reply(role.name + "のロールをつけました！");
+      }
     } else {
-      message.member.roles.add(role);
-      logger.info(role.name + "のロールをつけました！");
-      message.reply(role.name + "のロールをつけました！");
+      logger.info(config.discord.roleForValidUser + "のロールがサーバー上に見つかりませんでした");
+      message.reply(config.discord.roleForValidUser + "のロールがサーバー上に見つかりませんでした");
     }
-  } else {
-    logger.info(config.discord.roleForValidUser + "のロールがサーバー上に見つかりませんでした");
-    message.reply(config.discord.roleForValidUser + "のロールがサーバー上に見つかりませんでした");
   }
 }
 
