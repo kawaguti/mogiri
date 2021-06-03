@@ -7,23 +7,28 @@ describe('ツッコミボットについて', () => {
   })
 
   describe('', () => {
-    const mockMsg = {reply: jest.fn()}
-    const target = new BotTsukkomi(mockMsg)
     const EXP = /(いたしませ〜ん|それって医師免許、いりませんよね)/
-  
-    beforeEach(() => {mockMsg.reply.mockClear()})
+
     it('してください', () => {
-      target.commit('してください')
+      const mockMsg = {content: 'してください', reply: jest.fn()}
+      new BotTsukkomi(mockMsg).commit()
+
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching(EXP))
     })
+
     it('なさい', () => {
-      target.commit('書きなさい')
+      const mockMsg = {content: '書きなさい', reply: jest.fn()}
+      new BotTsukkomi(mockMsg).commit()
+
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching(EXP))
     })
+
     it('できますか', () => {
-      target.commit('できますか?')
+      const mockMsg = {content: 'できますか?', reply: jest.fn()}
+      new BotTsukkomi(mockMsg).commit()
+
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('失敗し'))
     })

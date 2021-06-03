@@ -6,21 +6,22 @@ describe('ガチャクラスについて', () => {
     expect(BotGacha.PATTERNS.length).toBeGreaterThan(0)
   })
 
-  const mockMsg = {reply: jest.fn()}
-  const target = new BotGacha(mockMsg)
-
-  beforeEach(() => {mockMsg.reply.mockClear()})
   it('ガチャが回ること', () => {
-    target.commit('ガチャ')
+    const mockMsg = {content: 'ガチャ', reply: jest.fn()}
+    new BotGacha(mockMsg).commit()
+
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('こんなん出ましたぁ〜'))
   })
   it('ラッキーナンバーが回ること', () => {
-    target.commit('ラッキーナンバー')
+    const mockMsg = {content: 'ラッキーナンバー', reply: jest.fn()}
+    new BotGacha(mockMsg).commit()
+
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('あなたのラッキーナンバー'))
   })
   it('範囲内の乱数を取得できること', () => {
-    expect(target.getRandom(3)).toBeLessThan(3)
+    const target = new BotGacha()
+      expect(target.getRandom(3)).toBeLessThan(3)
   })
 })

@@ -70,17 +70,15 @@ function createPatterns() {
 class BotTsukkomi extends MogiriBase {
   static PATTERNS = createPatterns();
 
-  /**
-   * @param {String} content
-   */
-  async commit(content) {
+  async commit() {
     WAREHOUSE.forEach((theme) => {
       theme.vocabularies.forEach((voca) => {
-        voca.words.find((wd) => wd.test(content)) &&
+        voca.words.find((wd) => wd.test(this.message.content)) &&
           this.message.reply(voca.replies[this.getRandom(voca.replies.length)]);
       });
     });
   }
 }
+
 
 module.exports = BotTsukkomi;

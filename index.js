@@ -25,7 +25,7 @@ client.on('message', async message => {
   const BOTS = [BotTsukkomi, MogiriBot, BotGacha]
   BOTS.forEach(async CLS => {
     CLS.PATTERNS.find(it => it.test(message.content)) &&
-      await (new CLS(message)).commit(message.content)
+      await (new CLS(message)).commit()
   })
 })
 

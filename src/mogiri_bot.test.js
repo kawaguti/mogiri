@@ -1,4 +1,3 @@
-const {MockMessage} = require("jest-discordjs-mocks");
 const MogiriBot = require('./mogiri_bot')
 
 it('一つ以上の受付けパターンが定義されていること', () => {
@@ -7,13 +6,15 @@ it('一つ以上の受付けパターンが定義されていること', () => {
 })
 
 it('', async () => {
+  const mockMsg = {content: '#9876543210', reply: jest.fn()}
+  const target = new MogiriBot(mockMsg)
 
-  const message = new MockMessage();
+  // await expect(target.commit(message.content)).resolves.toBeUndefined()
+})
 
-  message.reply = jest.fn()
-  message.content = "#9876543210";
-  // message.content = "#8888888888";
-  const target = new MogiriBot(message)
+it('', async () => {
+  const mockMsg = {content: '#8888888888', reply: jest.fn()}
+  const target = new MogiriBot(mockMsg)
 
   // await expect(target.commit(message.content)).resolves.toBeUndefined()
 })

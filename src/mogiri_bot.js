@@ -13,11 +13,8 @@ const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 class MogiriBot extends MogiriBase {
   static PATTERNS = [/#(\d{10})([^\d]|$)/]
 
-  /**
-   * @param {String} content
-   */
-  async commit(content) {
-    const match_strings = /#(\d{10})([^\d]|$)/.exec(content)
+  async commit() {
+    const match_strings = /#(\d{10})([^\d]|$)/.exec(this.message.content)
     match_strings && await this.run(match_strings[1])
   }
 
