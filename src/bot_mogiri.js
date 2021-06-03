@@ -3,7 +3,7 @@ const BotBase = require('./bot_base')
 const {logger} = require('./logger')
 const {dumpAttendeesOnThisOrder} = require('./matsumoto')
 const {TicketWarehouse, EbTicket} = require('./ticket_man')
-const {NotForRoleInGuild} = require('./exception')
+const {NotFoundRoleInGuild} = require('./exception')
 
 const DATA_PATH = ['development', 'test'].includes(process.env.NODE_ENV) ?
 './data/test_data' : './data/orders_attendees'
@@ -67,7 +67,7 @@ class BotMogiri extends BotBase {
 
     const role = guild.roles.cache.find(role => role.name === EVENT_ROLE);
     if (!role) {
-      throw new NotForRoleInGuild(EVENT_ROLE)
+      throw new NotFoundRoleInGuild(EVENT_ROLE)
     }
     if (member.roles.cache.some(role => role.name === EVENT_ROLE)) {
       logger.info("すでに" + role.name + "のロールをお持ちでした！");

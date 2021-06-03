@@ -1,4 +1,4 @@
-const {NotForRoleInGuild} = require('./exception')
+const {NotFoundRoleInGuild} = require('./exception')
 const BotMogiri = require('./bot_mogiri')
 
 it('一つ以上の受付けパターンが定義されていること', () => {
@@ -12,7 +12,7 @@ it('ロールが見つからない例外が出ること', () => {
     guild: {roles: {cache: [{name: '偽ロール'}]}}
   }
   const target = new BotMogiri(mockMsg)
-  expect(() => target.atacheDiscordRole()).toThrow(NotForRoleInGuild)
+  expect(() => target.atacheDiscordRole()).toThrow(NotFoundRoleInGuild)
 })
 
 it('重複ロールのメッセージが出ること', async () => {

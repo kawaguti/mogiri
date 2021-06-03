@@ -14,7 +14,7 @@ class NotForThisEventError extends MogiriError {
   }
 }
 
-class NotForRoleInGuild extends MogiriError {
+class NotFoundRoleInGuild extends MogiriError {
   constructor(role, ...params) {
     super(...params)
     this.message = `${role} のロールがサーバー上に見つかりませんでした。`
@@ -43,6 +43,6 @@ module.exports = {
   NotFoundTicketError,
   NotForThisEventError,
   InvalidTicketStatusError,
-  NotForRoleInGuild,
+  NotFoundRoleInGuild,
   UnknownNetworkError
 }
