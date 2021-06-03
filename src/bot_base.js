@@ -1,3 +1,5 @@
+const {logger} = require('./logger')
+
 class BotBase {
   static PATTERNS = []
   constructor(message) {
@@ -7,6 +9,11 @@ class BotBase {
 
   commit() {
     throw new Error('You have to implement the method commit!');
+  }
+
+  reply(str) {
+    logger.info(str);
+    this.message.reply(str);
   }
 
   getRandom(max) {

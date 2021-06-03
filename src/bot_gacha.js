@@ -9,7 +9,7 @@ class BotGacha extends BotBase {
       `あなたのラッキーナンバーは ${this.getRandom(10)} です!!`
     ]
     const num = BotGacha.PATTERNS.findIndex(it => it.test(this.message.content))
-    this.message.reply(MSGS[num])
+    this.reply(MSGS[num])
   }
 }
 

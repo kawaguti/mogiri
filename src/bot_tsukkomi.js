@@ -111,7 +111,7 @@ class BotTsukkomi extends BotBase {
     WAREHOUSE.forEach((theme) => {
       theme.vocabularies.forEach((voca) => {
         voca.words.find((wd) => wd.test(this.message.content)) &&
-          this.message.reply(voca.replies[this.getRandom(voca.replies.length)]);
+          this.reply(voca.replies[this.getRandom(voca.replies.length)]);
       });
     });
   }

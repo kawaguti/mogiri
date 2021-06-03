@@ -21,39 +21,39 @@ class BotMogiri extends BotBase {
   }
 
   async run(ticket) {
-    const message = this.message
+    const {author} = this.message
     const eb_ticket = warehouse.getEbTicket(ticket)
 
     if (!eb_ticket) {
-      message.reply(`${ticket}は初めての問い合わせです。`);
+      this.reply(`${ticket}は初めての問い合わせです。`);
     } else {
       if(eb_ticket.isFull) {
-        message.reply('あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。');
+        this.reply('あら、登録可能な人数を超えてしまいますので、スタッフが確認いたします。少々お待ちください。');
         return;
       }
 
-      if (eb_ticket.isRegisterd(message.author.username)) {
+      if (eb_ticket.isRegisterd(author.username)) {
         //MEMO: 同じチケット番号で登録済みのケース
-        message.reply(`${ticket} で ${message.author.username} さんは前に処理した記録がありますが、念のためもう一回確認しますね。`);
+        this.reply(`${ticket} で ${author.username} さんは前に処理した記録がありますが、念のためもう一回確認しますね。`);
       } else {
         //MEMO: 同じチケット番号で未登録のケース (二人目以降)
-        message.reply(`${ticket} は初めての登録です。`);
+        this.reply(`${ticket} は初めての登録です。`);
       }
-      message.reply(eb_ticket.info);
+      this.reply(eb_ticket.info);
     }
 
     try {
       //MEMO: アンダーコミットの時に eventbrite に問い合わせてしまう
       const eb_ticket = await EbTicket.reference(ticket, EVENT_ID)
-      message.reply(`${ticket}は有効なEventbriteオーダー番号です。`)
+      this.reply(`${ticket}は有効なEventbriteオーダー番号です。`)
 
-      eb_ticket.addAttendance(message.author?.username);
+      eb_ticket.addAttendance(author?.username);
       warehouse.addEbTicket(eb_ticket);
       this.atacheDiscordRole();
-      message.reply(eb_ticket.info);
+      this.reply(eb_ticket.info);
     } catch (error) {
       logger.info(error);
-      message.reply(error.message);
+      this.reply(error.message);
     }
   }
 
@@ -62,20 +62,17 @@ class BotMogiri extends BotBase {
    * @throws NotFoundRoleInGuild
    */
   atacheDiscordRole() {
-    const guild = this.message.guild
-    const member = this.message.member
+    const {guild, member} = this.message
 
     const role = guild.roles.cache.find(role => role.name === EVENT_ROLE);
     if (!role) {
       throw new NotFoundRoleInGuild(EVENT_ROLE)
     }
     if (member.roles.cache.some(role => role.name === EVENT_ROLE)) {
-      logger.info("すでに" + role.name + "のロールをお持ちでした！");
-      this.message.reply("すでに" + role.name + "のロールをお持ちでした！");
+      this.reply("すでに" + role.name + "のロールをお持ちでした！");
     } else {
       member.roles.add(role);
-      logger.info(role.name + "のロールをつけました！");
-      this.message.reply(role.name + "のロールをつけました！");
+      this.reply(role.name + "のロールをつけました！");
     }
   }
 }
