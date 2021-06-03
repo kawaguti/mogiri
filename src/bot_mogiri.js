@@ -3,10 +3,12 @@ const BotBase = require('./bot_base')
 const {logger} = require('./logger')
 const {dumpAttendeesOnThisOrder} = require('./matsumoto')
 const {TicketWarehouse, EbTicket} = require('./ticket_man')
+const {NotForRoleInGuild} = require('./exception')
 
 const DATA_PATH = ['development', 'test'].includes(process.env.NODE_ENV) ?
 './data/test_data' : './data/orders_attendees'
 const EVENT_ID = config.eventbrite.eventId
+const EVENT_ROLE = config.discord.roleForValidUser
 
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
@@ -14,7 +16,7 @@ class BotMogiri extends BotBase {
   static PATTERNS = [/#(\d{10})([^\d]|$)/]
 
   async commit() {
-    const match_strings = /#(\d{10})([^\d]|$)/.exec(this.message.content)
+    const match_strings = BotMogiri.PATTERNS[0].exec(this.message.content)
     match_strings && await this.run(match_strings[1])
   }
 
@@ -47,30 +49,33 @@ class BotMogiri extends BotBase {
 
       eb_ticket.addAttendance(message.author?.username);
       warehouse.addEbTicket(eb_ticket);
-      this.setDiscordRole();
+      this.atacheDiscordRole();
       message.reply(eb_ticket.info);
     } catch (error) {
-      logger.debug(error);
+      logger.info(error);
       message.reply(error.message);
     }
   }
 
-  setDiscordRole() {
-    const message = this.message
+  /**
+   * ロールを付与する
+   * @throws NotForRoleInGuild
+   */
+  atacheDiscordRole() {
+    const guild = this.message.guild
+    const member = this.message.member
 
-    const role = message.guild.roles.cache.find(role => role.name === config.discord.roleForValidUser);
-    if (role) {
-      if (message.member.roles.cache.some(role => role.name === config.discord.roleForValidUser)) {
-        logger.info("すでに" + role.name + "のロールをお持ちでした！");
-        message.reply("すでに" + role.name + "のロールをお持ちでした！");
-      } else {
-        message.member.roles.add(role);
-        logger.info(role.name + "のロールをつけました！");
-        message.reply(role.name + "のロールをつけました！");
-      }
+    const role = guild.roles.cache.find(role => role.name === EVENT_ROLE);
+    if (!role) {
+      throw new NotForRoleInGuild(EVENT_ROLE)
+    }
+    if (member.roles.cache.some(role => role.name === EVENT_ROLE)) {
+      logger.info("すでに" + role.name + "のロールをお持ちでした！");
+      this.message.reply("すでに" + role.name + "のロールをお持ちでした！");
     } else {
-      logger.info(config.discord.roleForValidUser + "のロールがサーバー上に見つかりませんでした");
-      message.reply(config.discord.roleForValidUser + "のロールがサーバー上に見つかりませんでした");
+      member.roles.add(role);
+      logger.info(role.name + "のロールをつけました！");
+      this.message.reply(role.name + "のロールをつけました！");
     }
   }
 }
