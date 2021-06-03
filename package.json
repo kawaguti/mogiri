@@ -4,8 +4,8 @@
   "description": "Conference reception bot for Discord with Eventbrite",
   "main": "index.js",
   "scripts": {
-    "start": "node index2.js",
-    "start:development": "NODE_ENV=development node index2.js",
+    "start": "node index.js",
+    "start:development": "NODE_ENV=development node index.js",
     "start:production": "NODE_ENV=production node index.js",
     "test": "jest",
     "test:watch": "jest --watch",
