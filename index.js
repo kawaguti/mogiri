@@ -1,10 +1,11 @@
 const Discord = require('discord.js');
-const client = new Discord.Client();
 const config = require('config');
 const {logger} = require('./src/logger')
 const BotTsukkomi = require('./src/bot_tsukkomi')
 const BotGacha = require('./src/bot_gacha');
-const MogiriBot = require('./src/mogiri_bot');
+const BotMogiri = require('./src/bot_mogiri');
+
+const client = new Discord.Client();
 
 const W_CHANNELS = config.discord.observation ?? ["受付", "実行委員会", "品川"]
 function isWatchChannel(channel_name) {
@@ -22,7 +23,7 @@ client.on('message', async message => {
   console.log("channel: " + message.channel.name);
   if(!isWatchChannel(message.channel.name)) return;
 
-  const BOTS = [BotTsukkomi, MogiriBot, BotGacha]
+  const BOTS = [BotTsukkomi, BotMogiri, BotGacha]
   BOTS.forEach(async CLS => {
     CLS.PATTERNS.find(it => it.test(message.content)) &&
       await (new CLS(message)).commit()

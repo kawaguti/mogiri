@@ -1,5 +1,5 @@
 const config = require('config');
-const MogiriBase = require('./mogiri_base')
+const BotBase = require('./bot_base')
 const {logger} = require('./logger')
 const {dumpAttendeesOnThisOrder} = require('./matsumoto')
 const {TicketWarehouse, EbTicket} = require('./ticket_man')
@@ -10,7 +10,7 @@ const EVENT_ID = config.eventbrite.eventId
 
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
-class MogiriBot extends MogiriBase {
+class BotMogiri extends BotBase {
   static PATTERNS = [/#(\d{10})([^\d]|$)/]
 
   async commit() {
@@ -74,4 +74,4 @@ function setDiscordRole(message) {
 }
 
 
-module.exports = MogiriBot;
+module.exports = BotMogiri;

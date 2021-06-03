@@ -1,4 +1,4 @@
-const MogiriBase = require("./mogiri_base");
+const BotBase = require("./bot_base");
 
 /**
  * ツッコミボット
@@ -67,7 +67,7 @@ function createPatterns() {
   ).flat();
 }
 
-class BotTsukkomi extends MogiriBase {
+class BotTsukkomi extends BotBase {
   static PATTERNS = createPatterns();
 
   async commit() {

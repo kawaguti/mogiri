@@ -1,4 +1,4 @@
-class MogiriBot {
+class BotBase {
   static PATTERNS = []
   constructor(message) {
     this._message = message;
@@ -14,4 +14,4 @@ class MogiriBot {
   }
 }
 
-module.exports = MogiriBot;
+module.exports = BotBase;

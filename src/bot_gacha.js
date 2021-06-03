@@ -1,6 +1,6 @@
-const MogiriBase = require('./mogiri_base')
+const BotBase = require('./bot_base')
 
-class BotGacha extends MogiriBase {
+class BotGacha extends BotBase {
   static PATTERNS = [/ガチャ/, /ラッキーナンバー/]
 
   async commit() {
