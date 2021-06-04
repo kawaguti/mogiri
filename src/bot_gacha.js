@@ -6,7 +6,7 @@ class BotGacha extends BotBase {
     /(ガチャ|gacha)\s*(?<max>\d+)?/,
     /ラッキーナンバー/,
     /[一1]\s?[人個つ].*選\S*\s+(.+)/,
-    /(calc|計算)\S*\s+(?<exp>\d[\d\+\-\*\/\s]+)/
+    /(calc|計算)\S*\s+(?<exp>[\d(][\d\+\-\*\/\s(\))]+)/
   ]
 
   async commit() {
@@ -48,6 +48,9 @@ class BotGacha extends BotBase {
     return `おめでとう〜!! **${box[this.getRandom(box.length)]}** が選ばれました!`
   }
 
+  /**
+   * 四則演算をする
+   */
   calc() {
     const result = BotGacha.PATTERNS[3].exec(this.message.content)
     return `カタカタ…結果は…こちら! ${eval(result.groups.exp)}`
