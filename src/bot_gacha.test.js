@@ -20,4 +20,11 @@ describe('ガチャクラスについて', () => {
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('あなたのラッキーナンバー'))
   })
+  it('一人を選ぶこと', () => {
+    const mockMsg = {content: '一人選んでください 山田 田中', reply: jest.fn()}
+    new BotGacha(mockMsg).commit()
+
+    expect(mockMsg.reply).toBeCalledTimes(1)
+    expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('選ばれ'))
+  })
 })
