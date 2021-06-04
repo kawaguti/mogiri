@@ -1,3 +1,4 @@
+const {logger} = require('./logger')
 const BotBase = require('./bot_base')
 
 class BotGacha extends BotBase {
@@ -24,7 +25,8 @@ class BotGacha extends BotBase {
       }
       this.reply(msg)
     } catch (error) {
-      this.reply(error.message)
+      logger.error(error.message)
+      this.reply('むむむ…。これは計算できない…。 (><)')
     }
   }
 
