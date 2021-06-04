@@ -27,4 +27,11 @@ describe('ガチャクラスについて', () => {
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('選ばれ'))
   })
+  it('計算できること', () => {
+    const mockMsg = {content: '計算してください 1+1', reply: jest.fn()}
+    new BotGacha(mockMsg).commit()
+
+    expect(mockMsg.reply).toBeCalledTimes(1)
+    expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('結果'))
+  })
 })
