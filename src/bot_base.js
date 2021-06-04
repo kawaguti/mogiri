@@ -7,7 +7,7 @@ class BotBase {
   }
   get message() { return this._message; }
 
-  commit() {
+  async commit() {
     throw new Error('You have to implement the method commit!');
   }
 

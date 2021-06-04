@@ -20,8 +20,4 @@ describe('ガチャクラスについて', () => {
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('あなたのラッキーナンバー'))
   })
-  it('範囲内の乱数を取得できること', () => {
-    const target = new BotGacha()
-      expect(target.getRandom(3)).toBeLessThan(3)
-  })
 })
