@@ -17,17 +17,14 @@ class BotGacha extends BotBase {
    * @param {object} match result of RegExp#exec
    */
   async run(index, match) {
+    const FUNCS = [
+      this.gacha,
+      () => `あなたのラッキーナンバーは ${this.getRandom(10)} です!!`,
+      this.chooseOne,
+      this.calc
+    ]
     try {
-      let msg = null
-      if (index === 0) {
-        msg = this.gacha(match)
-      } else if (index === 1) {
-        msg = `あなたのラッキーナンバーは ${this.getRandom(10)} です!!`
-      } else if (index === 2) {
-        msg = this.chooseOne(match)
-      } else if (index === 3) {
-        msg = this.calc(match)
-      }
+      let msg = FUNCS[index].call(this, match)
       this.reply(msg)
     } catch (error) {
       logger.error(error.message)
