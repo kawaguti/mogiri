@@ -7,6 +7,8 @@ const BotMogiri = require('./src/bot_mogiri');
 
 const client = new Discord.Client();
 
+logger.info(`Log category is "${logger.category}".`)
+
 const W_CHANNELS = config.discord.observation ?? ["受付", "実行委員会", "品川"]
 function isWatchChannel(channel_name) {
   return W_CHANNELS.includes(channel_name)
