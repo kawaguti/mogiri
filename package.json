@@ -38,8 +38,8 @@
   },
   "simple-git-hooks": {
     "pre-commit": "yarn test",
-    "post-checkout": "yarnhook",
-    "post-merge": "yarnhook",
-    "post-rewrite": "yarnhook"
+    "post-checkout": "yarn yarnhook",
+    "post-merge": "yarn yarnhook",
+    "post-rewrite": "yarn yarnhook"
   }
 }
