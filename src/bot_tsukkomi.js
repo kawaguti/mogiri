@@ -4,119 +4,76 @@ const BotBase = require("./bot_base");
  * ツッコミボット
  * 概要:
  * - パターンにマッチしたメッセージがあれば、それに紐づくツッコミを返します。
- * - 複数のパターンを登録できます。
- * - 複数のツッコミを登録できます。
  * - 複数のツッコミのうちからランダムに一つを選んで返信します。
  * - 決まった言葉のみ返信できます。変数は使えません。
  * - 変数を使いたい場合は、新たなクラスを起こしてください。
  */
 
-const WAREHOUSE = [
+const VOCABULARIES = [
   {
-    name: "アンジャッシュ",
-    vocabularies: [
-      {
-        words: [/大島さん/],
-        replies: ["児島だよ"],
-      }, {
-        words: [/児島さん/],
-        replies: ["そうだよ"],
-      },
-    ],
+    // アンジャッシュ
+    words: /大島さん/,
+    replies: ["児島だよ"],
   }, {
-    name: "DoctorX",
-    vocabularies: [
-      {
-        words: [/(てくだ|な)さい/],
-        replies: ["いたしませ〜ん", "それって医師免許、いりませんよね?!"],
-      }, {
-        words: [/ますか[\?？]/],
-        replies: ["私、失敗しませんから", "私、失敗しないので"],
-      }, {
-        words: [/(メロン|めろん)[\?？]/],
-        replies: ["完熟マンゴーです。"],
-      }
-    ],
+    words: /児島さん/,
+    replies: ["そうだよ"],
   }, {
-    name: "ミルクボーイ",
-    vocabularies: [
-      {
-        words: [/忘れ(た|ました|てしまった|てもーた)/],
-        replies: ["ほな、オレが一緒に考えてあげよ。"],
-      },
-      {
-        words: [/違う/],
-        replies: ["違うことあれへんがな!!"],
-      },
-      {
-        words: [/(貰|もら)(った|いました)/, /(頂|いただ|戴)きました/],
-        replies: ["こんなんなんぼあってもいいですからねぇ〜"],
-      }
-    ]
+    // DoctorX
+    words: /(てくだ|な)さい/,
+    replies: ["いたしませ〜ん", "それって医師免許、いりませんよね?!"],
   }, {
-    name: "タカ&トシ",
-    vocabularies: [
-      {
-        words: [/ミルク/],
-        replies: ["欧米か!"],
-      },
-      {
-        words: [/うっかり/],
-        replies: ["八兵衛か!"],
-      }
-    ]
+    words: /ますか[\?？]/,
+    replies: ["私、失敗しませんから", "私、失敗しないので"],
   }, {
-    name: "笑い飯",
-    vocabularies: [
-      {
-        words: [/鳥人/],
-        replies: ["バッサ、バッサ"]
-      }
-    ]
+    words: /(メロン|めろん)[\?？]/,
+    replies: ["完熟マンゴーです。"],
   }, {
-    name: "千鳥",
-    vocabularies: [
-      {
-        words: [/北米/],
-        replies: ["わたくし \"きすい館\" の女将、 \"はくべい\" でございます。"]
-      }, {
-        words: [/はくべい/],
-        replies: ["しろいたいらで \"白平\" でございます。"]
-      }
-    ]
+    // ミルクボーイ
+    words: /忘れ(た|ました|てしまった|てもーた)/,
+    replies: ["ほな、オレが一緒に考えてあげよ。"],
   }, {
-    name: "うっせぇわ",
-    vocabularies: [
-      {
-        words: [/(ルール|マナー)です/],
-        replies: [
-          "はぁ? うっせぇ、うっせぇ、うっせぇわ!",
-          "あなたが思うより健康です!!",
-          "一切合切凡庸なあなたじゃ分からないかもね!!!",
-          "くせぇ口塞げや、限界です!!",
-          "絶対絶対現代の代弁者は私やろがい!!!"
-        ]
-      }
+    words: /違う/,
+    replies: ["違うことあれへんがな!!"],
+  }, {
+    words: /(頂|いただ|戴)きました/,
+    replies: ["こんなんなんぼあってもいいですからねぇ〜"],
+  }, {
+    // タカ&トシ
+    words: /ミルク/,
+    replies: ["欧米か!"],
+  }, {
+    words: /うっかり/,
+    replies: ["八兵衛か!"],
+  }, {
+    // 笑い飯
+    words: /鳥人/,
+    replies: ["バッサ、バッサ"]
+  }, {
+    // 千鳥
+    words: /北米/,
+    replies: ["わたくし \"きすい館\" の女将、 \"はくべい\" でございます。"]
+  }, {
+    words: /はくべい/,
+    replies: ["しろいたいらで \"白平\" でございます。"]
+  }, {
+    // うっせぇわ
+    words: /(ルール|マナー)です/,
+    replies: [
+      "はぁ? うっせぇ、うっせぇ、うっせぇわ!",
+      "あなたが思うより健康です!!",
+      "一切合切凡庸なあなたじゃ分からないかもね!!!",
+      "くせぇ口塞げや、限界です!!",
+      "絶対絶対現代の代弁者は私やろがい!!!"
     ]
   }
 ];
 
-function createPatterns() {
-  return WAREHOUSE.map((theme) =>
-    theme.vocabularies.map((voca) => voca.words).flat()
-  ).flat();
-}
-
 class BotTsukkomi extends BotBase {
-  static PATTERNS = createPatterns();
+  get patterns() { return VOCABULARIES.map(it => it.words) }
 
-  async commit() {
-    WAREHOUSE.forEach((theme) => {
-      theme.vocabularies.forEach((voca) => {
-        voca.words.find((wd) => wd.test(this.message.content)) &&
-          this.reply(voca.replies[this.getRandom(voca.replies.length)]);
-      });
-    });
+  async run(index, match) {
+    const box = VOCABULARIES[index].replies
+    this.reply(box[this.getRandom(box.length)])
   }
 }
 

@@ -17,17 +17,14 @@ client.once('ready', () => {
   logger.debug(`start observating ${W_CHANNELS}`)
 })
 
-client.on('message', async message => {
+const bots = [BotTsukkomi, BotMogiri, BotGacha].map(it => new it())
+client.on('message', message => {
   if( message.author.bot) return;
 
   console.log("channel: " + message.channel.name);
   if(!isWatchChannel(message.channel.name)) return;
 
-  const BOTS = [BotTsukkomi, BotMogiri, BotGacha]
-  BOTS.forEach(async CLS => {
-    CLS.PATTERNS.find(it => it.test(message.content)) &&
-      await (new CLS(message)).commit()
-  })
+  bots.forEach(async it => await it.commit(message))
 })
 
 

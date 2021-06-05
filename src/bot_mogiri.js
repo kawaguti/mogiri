@@ -13,14 +13,10 @@ const EVENT_ROLE = config.discord.roleForValidUser
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
 class BotMogiri extends BotBase {
-  static PATTERNS = [/#(?<ticket>\d{10})([^\d]|$)/]
+  get patterns() { return [/#(?<ticket>\d{10})([^\d]|$)/] }
 
-  async commit() {
-    const result = BotMogiri.PATTERNS[0].exec(this.message.content)
-    result && await this.run(result.groups.ticket)
-  }
-
-  async run(ticket) {
+  async run(index, match) {
+    const ticket = match.groups.ticket
     const {author} = this.message
     const eb_ticket = warehouse.getEbTicket(ticket)
 

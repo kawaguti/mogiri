@@ -2,8 +2,8 @@ const {NotFoundRoleInGuild} = require('./exception')
 const BotMogiri = require('./bot_mogiri')
 
 it('一つ以上の受付けパターンが定義されていること', () => {
-  expect(BotMogiri.PATTERNS).toBeInstanceOf(Array)
-  expect(BotMogiri.PATTERNS.length).toBeGreaterThan(0)
+  const target = new BotMogiri()
+  expect(target.patterns.length).toBeGreaterThan(0)
 })
 
 it('ロールが見つからない例外が出ること', () => {
@@ -11,7 +11,8 @@ it('ロールが見つからない例外が出ること', () => {
     reply: jest.fn(),
     guild: {roles: {cache: [{name: '偽ロール'}]}}
   }
-  const target = new BotMogiri(mockMsg)
+  const target = new BotMogiri()
+  target.message = mockMsg
   expect(() => target.atacheDiscordRole()).toThrow(NotFoundRoleInGuild)
 })
 
@@ -21,7 +22,9 @@ it('重複ロールのメッセージが出ること', async () => {
     guild: {roles: {cache: [{name: 'ロックンロール'}]}},
     member: {roles: {cache: [{name: 'ロックンロール'}]}}
   }
-  new BotMogiri(mockMsg).atacheDiscordRole()
+  const target = new BotMogiri()
+  target.message = mockMsg
+  target.atacheDiscordRole()
 
   expect(mockMsg.reply).toBeCalledTimes(1)
   expect(mockMsg.reply).toBeCalledWith(expect.stringMatching(/お持ちでした/))
@@ -33,7 +36,9 @@ it('ロール付与のメッセージが出ること', async () => {
     guild: {roles: {cache: [{name: 'ロックンロール'}]}},
     member: {roles: {cache: [], add: jest.fn()}}
   }
-  new BotMogiri(mockMsg).atacheDiscordRole()
+  const target = new BotMogiri()
+  target.message = mockMsg
+  target.atacheDiscordRole()
 
   expect(mockMsg.member.roles.add).toBeCalledTimes(1)
   expect(mockMsg.member.roles.add).toBeCalledWith({name: 'ロックンロール'})
