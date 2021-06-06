@@ -1,5 +1,5 @@
+const {logger} = require('./logger')
 const BotBase = require("./bot_base");
-
 /**
  * ツッコミボット
  * 概要:
@@ -70,6 +70,14 @@ const VOCABULARIES = [
 
 class BotTsukkomi extends BotBase {
   get patterns() { return VOCABULARIES.map(it => it.words) }
+
+  async commit(message) {
+    if (message.content.length > 50) {
+      logger.warn(`too long content`)
+      return
+    }
+    await super.commit(message)
+  }
 
   async run(index, match) {
     const box = VOCABULARIES[index].replies
