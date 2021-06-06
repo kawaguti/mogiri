@@ -29,6 +29,7 @@
     "express": "^4.17.1",
     "log4js": "^6.3.0",
     "node-localstorage": "^2.1.6",
+    "value-schema": "^3.0.0",
     "yaml": "^1.10.2"
   },
   "devDependencies": {

@@ -1,13 +1,20 @@
 const fs = require('fs');
 const YAML = require('yaml');
+const vs = require("value-schema");
 const {logger} = require('./logger')
 const BotBase = require("./bot_base");
 
 const VOCABULARIES_FILE = './resource/vocabulary.yaml'
+const VOCABULARIES_SCHEMA = {
+  word:     vs.string({minLength: 1}),
+  replies:  vs.array({each: vs.string()})
+}
+
 const VOCABULARIES = YAML
   .parse(fs.readFileSync(VOCABULARIES_FILE, 'utf8'))
   .map(it => {
-    return {regex: new RegExp(it.word), replies: it.replies}
+    const result = vs.applySchemaObject(VOCABULARIES_SCHEMA, it)
+    return {regex: new RegExp(result.word), replies: result.replies}
   })
 
 /**
