@@ -16,19 +16,19 @@ describe('参照処理の分岐について', () => {
     target.referPermission.mockClear()
   })
   it('EventBrite 参照が呼ばれること', () => {
-    const mockMsg = {content: '#1234567890'}
+    const mockMsg = {cleanContent: '#1234567890'}
     target.commit(mockMsg)
     expect(target.referEventBrite).toBeCalledTimes(1)
     expect(target.referPermission).toBeCalledTimes(0)
   })
   it('トラック名でローカル権限チェックが呼ばれること', () => {
-    const mockMsg = {content: '#京都枠'}
+    const mockMsg = {cleanContent: '#京都枠'}
     target.commit(mockMsg)
     expect(target.referPermission).toBeCalledTimes(1)
     expect(target.referEventBrite).toBeCalledTimes(0)
   })
   it('イベント名でローカル権限チェックが呼ばれること', () => {
-    const mockMsg = {content: '#SFO２０２１'}
+    const mockMsg = {cleanContent: '#SFO２０２１'}
     target.commit(mockMsg)
     expect(target.referPermission).toBeCalledTimes(1)
     expect(target.referEventBrite).toBeCalledTimes(0)
@@ -82,7 +82,7 @@ describe('ローカル権限確認について', () => {
   target.atacheDiscordRole = jest.fn()
 
   it('ローカルに存在すればロール付与が呼ばれること', () => {
-    const mockMsg = {author: {username: 'Tommy109#5308'}}
+    const mockMsg = {author: {tag: 'Tommy109#5308'}}
     target.message = mockMsg
     target.referPermission()
     expect(target.atacheDiscordRole).toBeCalledTimes(1)

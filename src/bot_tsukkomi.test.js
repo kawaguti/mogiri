@@ -9,38 +9,38 @@ describe('ツッコミボットについて', () => {
   describe('', () => {
     const EXP = /(いたしませ〜ん|それって医師免許、いりませんよね)/
 
-    it('してください', () => {
-      const mockMsg = {content: 'してください', reply: jest.fn()}
-      new BotTsukkomi().commit(mockMsg)
+    it('してください', async () => {
+      const mockMsg = {cleanContent: 'してください', reply: jest.fn()}
+      await new BotTsukkomi().commit(mockMsg)
 
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching(EXP))
     })
 
-    it('なさい', () => {
-      const mockMsg = {content: '書きなさい', reply: jest.fn()}
-      new BotTsukkomi().commit(mockMsg)
+    it('なさい', async () => {
+      const mockMsg = {cleanContent: '書きなさい', reply: jest.fn()}
+      await new BotTsukkomi().commit(mockMsg)
 
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching(EXP))
     })
 
-    it('できますか', () => {
-      const mockMsg = {content: 'できますか?', reply: jest.fn()}
-      new BotTsukkomi().commit(mockMsg)
+    it('できますか', async () => {
+      const mockMsg = {cleanContent: 'できますか?', reply: jest.fn()}
+      await new BotTsukkomi().commit(mockMsg)
 
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('失敗し'))
     })
 
-    it('ごめんなさい', () => {
-      const mockMsg = {content: 'ごめんなさい?', reply: jest.fn()}
-      new BotTsukkomi().commit(mockMsg)
+    it('ごめんなさい', async () => {
+      const mockMsg = {cleanContent: 'ごめんなさい?', reply: jest.fn()}
+      await new BotTsukkomi().commit(mockMsg)
       expect(mockMsg.reply).toBeCalledTimes(0)
     })
-    it('分かりましたか', () => {
-      const mockMsg = {content: '分かりましたか?', reply: jest.fn()}
-      new BotTsukkomi().commit(mockMsg)
+    it('分かりましたか', async () => {
+      const mockMsg = {cleanContent: '分かりましたか?', reply: jest.fn()}
+      await new BotTsukkomi().commit(mockMsg)
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('御意'))
     })

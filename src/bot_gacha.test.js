@@ -15,13 +15,13 @@ describe('ガチャクラスについて', () => {
     ]
     fixtures.forEach(it => {
       target.gacha.mockClear()
-      target.commit({content: it, reply: () => {}})
+      target.commit({cleanContent: it, reply: () => {}})
       expect(target.gacha).toBeCalledWith(expect.objectContaining({input: it}))
     })
   })
 
   it('ラッキーナンバーが回ること', () => {
-    const mockMsg = {content: 'ラッキーナンバー', reply: jest.fn()}
+    const mockMsg = {cleanContent: 'ラッキーナンバー', reply: jest.fn()}
     new BotGacha().commit(mockMsg)
 
     expect(mockMsg.reply).toBeCalledTimes(1)
@@ -39,7 +39,7 @@ describe('ガチャクラスについて', () => {
     ]
     fixtures.forEach(it => {
       target.chooseOne.mockClear()
-      target.commit({content: it, reply: () => {}})
+      target.commit({cleanContent: it, reply: () => {}})
       expect(target.chooseOne).toBeCalledWith(expect.objectContaining({input: it}))
     })
   })
@@ -55,7 +55,7 @@ describe('ガチャクラスについて', () => {
     ]
     fixtures.forEach(it => {
       target.calc.mockClear()
-      target.commit({content: it, reply: () => {}})
+      target.commit({cleanContent: it, reply: () => {}})
       expect(target.calc).toBeCalledWith(expect.objectContaining({input: it}))
     })
   })
