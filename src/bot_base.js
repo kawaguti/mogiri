@@ -16,8 +16,10 @@ class BotBase {
   async commit(message) {
     this.message = message
 
+    logger.debug(this.message.cleanContent);
+
     this.patterns
-      .map((it, idx) => ({idx, match: it.exec(this.message.content)}))
+      .map((it, idx) => ({idx, match: it.exec(this.message.cleanContent)}))
       .filter(it => !!it.match)
       .forEach(async it => {await this.run(it.idx, it.match)})
   }
