@@ -32,5 +32,17 @@ describe('ツッコミボットについて', () => {
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('失敗し'))
     })
+
+    it('ごめんなさい', () => {
+      const mockMsg = {content: 'ごめんなさい?', reply: jest.fn()}
+      new BotTsukkomi().commit(mockMsg)
+      expect(mockMsg.reply).toBeCalledTimes(0)
+    })
+    it('分かりましたか', () => {
+      const mockMsg = {content: '分かりましたか?', reply: jest.fn()}
+      new BotTsukkomi().commit(mockMsg)
+      expect(mockMsg.reply).toBeCalledTimes(1)
+      expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('御意'))
+    })
   })
 })

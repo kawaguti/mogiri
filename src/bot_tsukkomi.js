@@ -9,13 +9,14 @@ const VOCABULARIES_SCHEMA = {
   word:     vs.string({minLength: 1}),
   replies:  vs.array({each: vs.string()})
 }
-
 const VOCABULARIES = YAML
   .parse(fs.readFileSync(VOCABULARIES_FILE, 'utf8'))
   .map(it => {
     const result = vs.applySchemaObject(VOCABULARIES_SCHEMA, it)
     return {regex: new RegExp(result.word), replies: result.replies}
   })
+
+console.log(VOCABULARIES)
 
 /**
  * ツッコミボット
