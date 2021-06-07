@@ -12,5 +12,9 @@
         "privateKey" : "{Your Discord Private Key}",
         "roleForValidUser" : "{Discord Role Name for Valid User}",
         "observation": [{observation channels}]
+    },
+
+    "invitation" : {
+        "filePath" : "./resource/invitation_sfo2021.yaml"
     }
 }

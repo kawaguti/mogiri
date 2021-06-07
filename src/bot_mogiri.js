@@ -16,7 +16,8 @@ const EVENT_ROLE = config.discord.roleForValidUser
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
 // 招待リスト (スポンサー、スピーカー)
-const PERMISSION_FILE = './resource/invitation_sfo2021.yaml'
+const PERMISSION_FILE =  config.invitation.filePath;
+
 const PERMISSIONS = YAML
   .parse(fs.readFileSync(PERMISSION_FILE, 'utf8'))
 
@@ -96,7 +97,7 @@ class BotMogiri extends BotBase {
   referPermission(match) {
     const {author} = this.message
 
-    if (!PERMISSIONS.includes(author.username)) {
+    if (!PERMISSIONS.includes(author.tag)) {
       throw new NotFoundInInviteList()
     }
 
