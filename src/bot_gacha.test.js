@@ -2,25 +2,36 @@ const BotGacha = require('./bot_gacha')
 
 describe('ガチャクラスについて', () => {
   it('一つ以上の受付けパターンが定義されていること', () => {
-    expect(BotGacha.PATTERNS).toBeInstanceOf(Array)
-    expect(BotGacha.PATTERNS.length).toBeGreaterThan(0)
+    const target = new BotGacha()
+    expect(target.patterns.length).toBeGreaterThan(0)
   })
 
-  const mockMsg = {reply: jest.fn()}
-  const target = new BotGacha(mockMsg)
-
-  beforeEach(() => {mockMsg.reply.mockClear()})
   it('ガチャが回ること', () => {
-    target.commit('ガチャ')
+    const mockMsg = {content: 'ガチャ', reply: jest.fn()}
+    new BotGacha().commit(mockMsg)
+
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('こんなん出ましたぁ〜'))
   })
   it('ラッキーナンバーが回ること', () => {
-    target.commit('ラッキーナンバー')
+    const mockMsg = {content: 'ラッキーナンバー', reply: jest.fn()}
+    new BotGacha().commit(mockMsg)
+
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('あなたのラッキーナンバー'))
   })
-  it('範囲内の乱数を取得できること', () => {
-    expect(target.getRandom(3)).toBeLessThan(3)
+  it('一人を選ぶこと', () => {
+    const mockMsg = {content: '一人選んでください 山田 田中', reply: jest.fn()}
+    new BotGacha().commit(mockMsg)
+
+    expect(mockMsg.reply).toBeCalledTimes(1)
+    expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('選ばれ'))
+  })
+  it('計算できること', () => {
+    const mockMsg = {content: '計算してください 1+1', reply: jest.fn()}
+    new BotGacha().commit(mockMsg)
+
+    expect(mockMsg.reply).toBeCalledTimes(1)
+    expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('結果'))
   })
 })

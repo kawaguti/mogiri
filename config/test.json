@@ -5,12 +5,11 @@
 
     "eventbrite" : {
         "privateKey" : "{Your Evendbrite Private Key}",
-        "eventId" : "{Your Evendbrite Event ID}"
+        "eventId" : "x01"
     },
 
     "discord" : {
         "privateKey" : "{Your Discord Private Key}",
-        "roleForValidUser" : "{Discord Role Name for Valid User}",
-        "observation": [{observation channels}]
+        "roleForValidUser" : "ロックンロール"
     }
 }

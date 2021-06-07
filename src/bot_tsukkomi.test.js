@@ -2,28 +2,33 @@ const BotTsukkomi = require('./bot_tsukkomi.js')
 
 describe('ツッコミボットについて', () => {
   it('一つ以上の受付けパターンが定義されていること', () => {
-    expect(BotTsukkomi.PATTERNS).toBeInstanceOf(Array)
-    expect(BotTsukkomi.PATTERNS.length).toBeGreaterThan(0)
+    const target = new BotTsukkomi()
+    expect(target.patterns.length).toBeGreaterThan(0)
   })
 
   describe('', () => {
-    const mockMsg = {reply: jest.fn()}
-    const target = new BotTsukkomi(mockMsg)
     const EXP = /(いたしませ〜ん|それって医師免許、いりませんよね)/
-  
-    beforeEach(() => {mockMsg.reply.mockClear()})
+
     it('してください', () => {
-      target.commit('してください')
+      const mockMsg = {content: 'してください', reply: jest.fn()}
+      new BotTsukkomi().commit(mockMsg)
+
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching(EXP))
     })
+
     it('なさい', () => {
-      target.commit('書きなさい')
+      const mockMsg = {content: '書きなさい', reply: jest.fn()}
+      new BotTsukkomi().commit(mockMsg)
+
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching(EXP))
     })
+
     it('できますか', () => {
-      target.commit('できますか?')
+      const mockMsg = {content: 'できますか?', reply: jest.fn()}
+      new BotTsukkomi().commit(mockMsg)
+
       expect(mockMsg.reply).toBeCalledTimes(1)
       expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('失敗し'))
     })
