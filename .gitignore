@@ -112,3 +112,4 @@ dist
 config/development.json
 config/production.json
 data/
+resource/invitation_sfo2021_production.yaml
