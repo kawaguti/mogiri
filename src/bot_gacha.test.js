@@ -7,12 +7,19 @@ describe('ガチャクラスについて', () => {
   })
 
   it('ガチャが回ること', () => {
-    const mockMsg = {content: 'ガチャ', reply: jest.fn()}
-    new BotGacha().commit(mockMsg)
-
-    expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('こんなん出ましたぁ〜'))
+    const target = new BotGacha()
+    target.gacha = jest.fn()
+    const fixtures = [
+      'ガチャを回して!',
+      'gacha 1000'
+    ]
+    fixtures.forEach(it => {
+      target.gacha.mockClear()
+      target.commit({content: it, reply: () => {}})
+      expect(target.gacha).toBeCalledWith(expect.objectContaining({input: it}))
+    })
   })
+
   it('ラッキーナンバーが回ること', () => {
     const mockMsg = {content: 'ラッキーナンバー', reply: jest.fn()}
     new BotGacha().commit(mockMsg)
@@ -20,18 +27,36 @@ describe('ガチャクラスについて', () => {
     expect(mockMsg.reply).toBeCalledTimes(1)
     expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('あなたのラッキーナンバー'))
   })
-  it('一人を選ぶこと', () => {
-    const mockMsg = {content: '一人選んでください 山田 田中', reply: jest.fn()}
-    new BotGacha().commit(mockMsg)
 
-    expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('選ばれ'))
+  it('一つを選ぶこと', () => {
+    const target = new BotGacha()
+    target.chooseOne = jest.fn()
+    const fixtures = [
+      '1つ選　 山田 田中',
+      '一人選んでください 山田 田中',
+      'なにかを選んでください 山田 田中',
+      '誰かを選んでください 山田 田中'
+    ]
+    fixtures.forEach(it => {
+      target.chooseOne.mockClear()
+      target.commit({content: it, reply: () => {}})
+      expect(target.chooseOne).toBeCalledWith(expect.objectContaining({input: it}))
+    })
   })
-  it('計算できること', () => {
-    const mockMsg = {content: '計算してください 1+1', reply: jest.fn()}
-    new BotGacha().commit(mockMsg)
 
-    expect(mockMsg.reply).toBeCalledTimes(1)
-    expect(mockMsg.reply).toBeCalledWith(expect.stringMatching('結果'))
+  it('計算できること', () => {
+    const target = new BotGacha()
+    target.calc = jest.fn()
+    const fixtures = [
+      '計算 3',
+      '計算してください 1+1',
+      '集計 1000+20000',
+      '合計 333'
+    ]
+    fixtures.forEach(it => {
+      target.calc.mockClear()
+      target.commit({content: it, reply: () => {}})
+      expect(target.calc).toBeCalledWith(expect.objectContaining({input: it}))
+    })
   })
 })

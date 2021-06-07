@@ -16,8 +16,6 @@ const VOCABULARIES = YAML
     return {regex: new RegExp(result.word), replies: result.replies}
   })
 
-console.log(VOCABULARIES)
-
 /**
  * ツッコミボット
  * 概要:

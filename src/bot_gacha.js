@@ -4,8 +4,8 @@ const BotBase = require('./bot_base')
 const PATTERNS = [
   /(ガチャ|gacha)\s*(?<max>\d+)?/,
   /ラッキーナンバー/,
-  /[一1]\s?[人個つ].*選\S*\s+(?<option>.+)/,
-  /(calc|計算)\S*\s+(?<exp>[\d(][\d\+\-\*\/\s(\))]+)/
+  /([一1]\s?[人個つ]|(どこ|誰|どれ|なに|何)).*選\S*[\s　]+(?<option>.+)/,
+  /(calc|計算|集計|合計)\S*\s+(?<exp>[\d(][\d\+\-\*\/\s(\))]*)/
 ]
 
 class BotGacha extends BotBase {
@@ -48,7 +48,7 @@ class BotGacha extends BotBase {
    * @returns {string} message for reply
    */
   chooseOne(match) {
-    const box = match.groups.option.split(/[ 　,、\-ー:：]+/)
+    const box = match.groups.option.split(/[ 　,、\-:：]+/)
     return `おめでとう〜!! **${box[this.getRandom(box.length)]}** が選ばれました!`
   }
 
