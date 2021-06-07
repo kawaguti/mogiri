@@ -38,7 +38,7 @@ class BotMogiri extends BotBase {
     ]
 
     try {
-      await FUNCS[index](match)
+      await FUNCS[index].call(this, match)
     } catch (error) {
       logger.info(error);
       this.reply(error.message);
