@@ -31,6 +31,13 @@ class InvalidTicketStatusError extends MogiriError {
   }
 }
 
+class NotFoundInInviteList extends MogiriError {
+  constructor(...params) {
+    super(...params)
+    this.message = 'あら、招待リストが古いのかしら? スタッフが確認いたしますので、少々お待ちください。'
+  }
+}
+
 class UnknownNetworkError extends Error {
   constructor(status, ...params) {
     super(...params)
@@ -44,5 +51,6 @@ module.exports = {
   NotForThisEventError,
   InvalidTicketStatusError,
   NotFoundRoleInGuild,
+  NotFoundInInviteList,
   UnknownNetworkError
 }

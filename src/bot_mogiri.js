@@ -1,10 +1,13 @@
 const config = require('config');
+const fs = require('fs');
+const YAML = require('yaml');
 const BotBase = require('./bot_base')
 const {logger} = require('./logger')
 const {dumpAttendeesOnThisOrder} = require('./matsumoto')
 const {TicketWarehouse, EbTicket} = require('./ticket_man')
-const {NotFoundRoleInGuild} = require('./exception')
+const {NotFoundRoleInGuild, NotFoundInInviteList} = require('./exception')
 
+// EventBrite チケット管理準備
 const DATA_PATH = ['development', 'test'].includes(process.env.NODE_ENV) ?
 './data/test_data' : './data/orders_attendees'
 const EVENT_ID = config.eventbrite.eventId
@@ -12,12 +15,43 @@ const EVENT_ROLE = config.discord.roleForValidUser
 
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
+// 招待リスト (スポンサー、スピーカー)
+const PERMISSION_FILE = './resource/invitation_sfo2021.yaml'
+const PERMISSIONS = YAML
+  .parse(fs.readFileSync(PERMISSION_FILE, 'utf8'))
+
+// Mogiri が動作する正規表現パターン
+const PATTERNS = [
+  /#(?<ticket>\d{10})([^\d]|$)/,
+  /[#＃](大阪|札幌|三河|広島|福岡|品川|仙台|四国|栃木|京都|ベトナム|新潟|鳥取|金沢)枠/,
+  /[#＃](SFO|ＳＦＯ)[\s　]?(2021|２０２１)/
+]
+
 class BotMogiri extends BotBase {
-  get patterns() { return [/#(?<ticket>\d{10})([^\d]|$)/] }
+  get patterns() { return PATTERNS }
 
   async run(index, match) {
-    const ticket = match.groups.ticket
+    const FUNCS = [
+      this.referEventBrite,
+      this.referPermission,
+      this.referPermission,
+    ]
+
+    try {
+      await FUNCS[index](match)
+    } catch (error) {
+      logger.info(error);
+      this.reply(error.message);
+    }
+  }
+
+  /**
+   * EventBrite による参加確認
+   * @param {object} match result of RegExp#exec
+   */
+  async referEventBrite(match) {
     const {author} = this.message
+    const ticket = match.groups.ticket
     const eb_ticket = warehouse.getEbTicket(ticket)
 
     if (!eb_ticket) {
@@ -38,8 +72,10 @@ class BotMogiri extends BotBase {
       this.reply(eb_ticket.info);
     }
 
+    //FIXME: refactoring で例外処理を消す。(run で行っているから)
+    // ただし、アンダーコミットの時に eventbrite に問い合わせてしまうので
+    // フローの見直しが必要。
     try {
-      //MEMO: アンダーコミットの時に eventbrite に問い合わせてしまう
       const eb_ticket = await EbTicket.reference(ticket, EVENT_ID)
       this.reply(`${ticket}は有効なEventbriteオーダー番号です。`)
 
@@ -51,6 +87,20 @@ class BotMogiri extends BotBase {
       logger.info(error);
       this.reply(error.message);
     }
+  }
+
+  /**
+   * 招待リストによる参加確認
+   * @param {object} match result of RegExp#exec
+   */
+  referPermission(match) {
+    const {author} = this.message
+
+    if (!PERMISSIONS.includes(author.username)) {
+      throw new NotFoundInInviteList()
+    }
+
+    this.atacheDiscordRole()
   }
 
   /**
