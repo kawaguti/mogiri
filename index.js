@@ -7,6 +7,7 @@ const BotMogiri = require('./src/bot_mogiri');
 
 const client = new Discord.Client();
 
+logger.info(`Mogiri Version ${process.env.npm_package_version}.`)
 logger.info(`Log category is "${logger.category}".`)
 
 const W_CHANNELS = config.discord.observation ?? ["受付", "実行委員会", "品川"]

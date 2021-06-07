@@ -23,6 +23,7 @@ const PERMISSIONS = YAML
 
 // Mogiri が動作する正規表現パターン
 const PATTERNS = [
+  /#(version|VERSION)/,
   /#(?<ticket>\d{10})([^\d]|$)/,
   /[#＃](大阪|札幌|三河|広島|福岡|品川|仙台|四国|栃木|京都|ベトナム|新潟|鳥取|金沢|XP祭り|学びと心理学|AgileTechExpo)枠/,
   /[#＃](SFO|ＳＦＯ)[\s　]?(2021|２０２１)/
@@ -33,6 +34,7 @@ class BotMogiri extends BotBase {
 
   async run(index, match) {
     const FUNCS = [
+      () => {this.reply(`Mogiri Version ${process.env.npm_package_version}.`)},
       this.referEventBrite,
       this.referPermission,
       this.referPermission,
