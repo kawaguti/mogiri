@@ -40,13 +40,13 @@ Adding your bot to servers : <https://discordjs.guide/preparations/adding-your-b
 ## config and run
 in bash
 ```
-$ export NODE_ENV=development
+$ export NODE_ENV=production
 $ node index.js
 ```
 
 in Powershell
 ```
-PS > $env:NODE_ENV=development
+PS > $env:NODE_ENV=production
 PS > node index.js
 ```
 
