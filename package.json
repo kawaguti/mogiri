@@ -1,6 +1,6 @@
 {
   "name": "mogiri",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Conference reception bot for Discord with Eventbrite",
   "main": "index.js",
   "scripts": {
