@@ -11,5 +11,9 @@
     "discord" : {
         "privateKey" : "{Your Discord Private Key}",
         "roleForValidUser" : "ロックンロール"
+    },
+
+    "invitation" : {
+        "filePath" : "./resource/invitation_sfo2021.yaml"
     }
 }

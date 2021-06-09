@@ -16,8 +16,6 @@ const VOCABULARIES = YAML
     return {regex: new RegExp(result.word), replies: result.replies}
   })
 
-console.log(VOCABULARIES)
-
 /**
  * ツッコミボット
  * 概要:
@@ -31,7 +29,7 @@ class BotTsukkomi extends BotBase {
   get patterns() { return VOCABULARIES.map(it => it.regex) }
 
   async commit(message) {
-    if (message.content.length > 50) {
+    if (message.cleanContent.length > 50) {
       logger.warn(`too long content`)
       return
     }
