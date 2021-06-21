@@ -34,7 +34,7 @@ class InvalidTicketStatusError extends MogiriError {
 class NotFoundInInviteList extends MogiriError {
   constructor(...params) {
     super(...params)
-    this.message = 'あら、招待リストが古いのかしら? スタッフが確認いたしますので、少々お待ちください。'
+    this.message = 'スタッフが確認しますのでお待ちください。(スプレッドシートから手作業で同期しているので数日かかります)'
   }
 }
 
