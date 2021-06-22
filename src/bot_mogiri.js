@@ -16,10 +16,19 @@ const EVENT_ROLE = config.discord.roleForValidUser
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
 // 招待リスト (スポンサー、スピーカー)
+
+// Initialize the sheet - doc ID is the long id in the sheets URL
+const { GoogleSpreadsheet } = require('google-spreadsheet');
+const doc = new GoogleSpreadsheet(config.googlespreadsheet.sheetid);
+const credentials = config.googlespreadsheet.credentials;
+
+
 const PERMISSION_FILE =  config.invitation.filePath;
 
 const PERMISSIONS = YAML
-  .parse(fs.readFileSync(PERMISSION_FILE, 'utf8'))
+    .parse(fs.readFileSync(PERMISSION_FILE, 'utf8'))
+let invitations = Array.from(getInvitaitons());
+
 
 // Mogiri が動作する正規表現パターン
 const PATTERNS = [
@@ -99,7 +108,8 @@ class BotMogiri extends BotBase {
   referPermission(match) {
     const {author} = this.message
 
-    if (!PERMISSIONS.includes(author.tag)) {
+    if ( invitations.includes(author.tag)) {
+    //    if (!PERMISSIONS.includes(author.tag)) {
       throw new NotFoundInInviteList()
     }
 
@@ -125,6 +135,33 @@ class BotMogiri extends BotBase {
     }
   }
 }
+
+async function getInvitaitons () {
+    // Initialize Auth - see more available options at https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication
+    await doc.useServiceAccountAuth(credentials);
+    await doc.loadInfo(); // loads document properties and worksheets
+    console.log(doc.title);
+    //await doc.updateProperties({ title: 'renamed doc' });
+
+    const sheet = doc.sheetsByTitle["チケット表"]; // or use doc.sheetsById[id] or doc.sheetsByTitle[title]
+    console.log(sheet.title);
+    console.log(sheet.rowCount);
+
+    await sheet.loadCells('B2:R30');
+    console.log(sheet.cellStats);
+    let ret = new Array();
+    for ( let j = 1; j< 18; j++){
+        for ( let i = 5 ; i < 30; i++) {
+            const a1 = sheet.getCell(i, j);
+            if (a1.value != null ) {
+               console.log(a1.value);
+               ret.push(a1.value);
+            }
+        }
+    }
+    return ret;
+}
+
 
 
 module.exports = BotMogiri;
