@@ -16,19 +16,10 @@ const EVENT_ROLE = config.discord.roleForValidUser
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
 // 招待リスト (スポンサー、スピーカー)
-
-// Initialize the sheet - doc ID is the long id in the sheets URL
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const doc = new GoogleSpreadsheet(config.googlespreadsheet.sheetid);
 const credentials = config.googlespreadsheet.credentials;
-
-
-const PERMISSION_FILE =  config.invitation.filePath;
-
-const PERMISSIONS = YAML
-    .parse(fs.readFileSync(PERMISSION_FILE, 'utf8'))
 let invitations = Array.from(getInvitaitons());
-
 
 // Mogiri が動作する正規表現パターン
 const PATTERNS = [
@@ -108,6 +99,8 @@ class BotMogiri extends BotBase {
   referPermission(match) {
     const {author} = this.message
 
+    let invitations = Array.from(getInvitaitons());
+
     if ( invitations.includes(author.tag)) {
     //    if (!PERMISSIONS.includes(author.tag)) {
       throw new NotFoundInInviteList()
@@ -137,24 +130,18 @@ class BotMogiri extends BotBase {
 }
 
 async function getInvitaitons () {
-    // Initialize Auth - see more available options at https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication
     await doc.useServiceAccountAuth(credentials);
-    await doc.loadInfo(); // loads document properties and worksheets
-    console.log(doc.title);
-    //await doc.updateProperties({ title: 'renamed doc' });
-
-    const sheet = doc.sheetsByTitle["チケット表"]; // or use doc.sheetsById[id] or doc.sheetsByTitle[title]
+    await doc.loadInfo();
+    console.log(doc.title); 
+    const sheet = doc.sheetsByTitle[config.googlespreadsheet.sheetname];
     console.log(sheet.title);
-    console.log(sheet.rowCount);
-
-    await sheet.loadCells('B2:R30');
-    console.log(sheet.cellStats);
+    await sheet.loadCells(config.googlespreadsheet.loadrange);
+    const scanrange = config.googlespreadsheet.scanrange;
     let ret = new Array();
-    for ( let j = 1; j< 18; j++){
-        for ( let i = 5 ; i < 30; i++) {
+    for ( let j = scanrange[0][0]; j< scanrange[0][1]; j++){
+        for ( let i = scanrange[1][0] ; i < scanrange[1][1]; i++) {
             const a1 = sheet.getCell(i, j);
             if (a1.value != null ) {
-               console.log(a1.value);
                ret.push(a1.value);
             }
         }
