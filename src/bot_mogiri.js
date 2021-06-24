@@ -16,10 +16,13 @@ const EVENT_ROLE = config.discord.roleForValidUser
 const warehouse = new TicketWarehouse(DATA_PATH, EVENT_ID)
 
 // 招待リスト (スポンサー、スピーカー)
+const PERMISSION_FILE =  config.invitation.filePath;
+const PERMISSIONS = YAML
+    .parse(fs.readFileSync(PERMISSION_FILE, 'utf8'))
+
 const { GoogleSpreadsheet } = require('google-spreadsheet');
 const doc = new GoogleSpreadsheet(config.googlespreadsheet.sheetid);
 const credentials = config.googlespreadsheet.credentials;
-let invitations = Array.from(getInvitaitons());
 
 // Mogiri が動作する正規表現パターン
 const PATTERNS = [
@@ -96,15 +99,13 @@ class BotMogiri extends BotBase {
    * 招待リストによる参加確認
    * @param {object} match result of RegExp#exec
    */
-  referPermission(match) {
+  async referPermission(match) {
     const {author} = this.message
-
-    let invitations = Array.from(getInvitaitons());
-
-    if ( invitations.includes(author.tag)) {
-    //    if (!PERMISSIONS.includes(author.tag)) {
-      throw new NotFoundInInviteList()
-    }
+    if (!PERMISSIONS.includes(author.tag)) {
+      if ( !await findInvitaiton(author.tag)) {
+        throw new NotFoundInInviteList()
+      }
+    }    
 
     this.atacheDiscordRole()
   }
@@ -129,24 +130,27 @@ class BotMogiri extends BotBase {
   }
 }
 
-async function getInvitaitons () {
-    await doc.useServiceAccountAuth(credentials);
-    await doc.loadInfo();
-    console.log(doc.title); 
-    const sheet = doc.sheetsByTitle[config.googlespreadsheet.sheetname];
-    console.log(sheet.title);
-    await sheet.loadCells(config.googlespreadsheet.loadrange);
-    const scanrange = config.googlespreadsheet.scanrange;
-    let ret = new Array();
-    for ( let j = scanrange[0][0]; j< scanrange[0][1]; j++){
-        for ( let i = scanrange[1][0] ; i < scanrange[1][1]; i++) {
-            const a1 = sheet.getCell(i, j);
-            if (a1.value != null ) {
-               ret.push(a1.value);
+async function findInvitaiton (discordId) {
+  await doc.useServiceAccountAuth(credentials);
+  await doc.loadInfo();
+  console.log(doc.title); 
+  const sheet = doc.sheetsByTitle[config.googlespreadsheet.sheetname];
+  console.log(sheet.title);
+  await sheet.loadCells(config.googlespreadsheet.loadrange);
+  const scanrange = config.googlespreadsheet.scanrange;
+  for ( let j = scanrange[0][0]; j< scanrange[0][1]; j++){
+      for ( let i = scanrange[1][0] ; i < scanrange[1][1]; i++) {
+          const a1 = sheet.getCell(i, j);
+          if (a1.value != null ) {
+            console.log (discordId + ": " + a1.value.toString() );
+            if ( discordId == a1.value.toString() ){
+              console.log ( "hit!" );
+              return true;
             }
-        }
-    }
-    return ret;
+          }
+      }
+  }
+  return false;
 }
 
 
