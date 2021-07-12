@@ -102,14 +102,19 @@ dist
 # DynamoDB Local files
 .dynamodb/
 
+# ide Local files
+.idea/
+
+# MacOS Local files
+.DS_Store
+
 # TernJS port file
 .tern-port
 .deployment
 .vscode/settings.json
 
 # for mogiri
-*.csv
 config/development.json
 config/production.json
-data/
-resource/invitation_sfo2021_production.yaml
+
+
