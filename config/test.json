@@ -1,19 +1,10 @@
 {
-    "data" : {
-        "filePath": "orders_attendees.csv"
-    },
-
-    "eventbrite" : {
-        "privateKey" : "{Your Evendbrite Private Key}",
-        "eventId" : "x01"
-    },
-
-    "discord" : {
-        "privateKey" : "{Your Discord Private Key}",
-        "roleForValidUser" : "ロックンロール"
-    },
-
-    "invitation" : {
-        "filePath" : "./resource/invitation_sfo2021.yaml"
-    }
+  "discord": {
+    "privateKey": "{Your Discord Private Key}",
+    "roleForValidUser": "ロックンロール"
+  },
+  "googlespreadsheet": {
+    "sheetid": "{sheet ID in shared spreadsheet url}",
+    "sheetname": "{sheet name}"
+  }
 }

@@ -29,7 +29,8 @@ Please put these environment values on .env file on root dir.
 
 To get your Eventbrite private key : <https://www.eventbrite.com/platform/api-keys>
 
-Event ID can be taken from your event management page URL, eid parameter 12-digits, <https://www.eventbrite.com/myevent?eid=123456789012>
+Event ID can be taken from your event management page URL, eid parameter
+12-digits, <https://www.eventbrite.com/myevent?eid=123456789012>
 
 To register your bot to your server, please see...
 
@@ -38,13 +39,16 @@ Setting up a bot application : <https://discordjs.guide/preparations/setting-up-
 Adding your bot to servers : <https://discordjs.guide/preparations/adding-your-bot-to-servers.html>
 
 ## config and run
+
 in bash
+
 ```
 $ export NODE_ENV=production
 $ node index.js
 ```
 
 in Powershell
+
 ```
 PS > $env:NODE_ENV=production
 PS > node index.js

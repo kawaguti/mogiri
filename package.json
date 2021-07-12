@@ -1,41 +1,33 @@
 {
-  "name": "mogiri",
+  "name": "mogiri-lite",
   "version": "1.0.3",
-  "description": "Conference reception bot for Discord with Eventbrite",
+  "description": "Conference reception bot for Discord with Google spreadsheet",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "start:development": "NODE_ENV=development node index.js",
     "start:production": "NODE_ENV=production node index.js",
     "test": "jest",
-    "test:watch": "jest --watch",
-    "mockdb": "json-server -r mockdb/route.json mockdb/data.json"
+    "test:watch": "jest --watch"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kawaguti/mogiri.git"
-  },
-  "author": "",
-  "license": "ISC",
+  "repository": "git+https://github.com/1on1guide-org/mogiri-lite.git",
+  "author": "eroccowaruico <naohito@analog.bz>",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kawaguti/mogiri/issues"
+    "url": "https://github.com/1on1guide-org/mogiri-lite/issues"
   },
-  "homepage": "https://github.com/kawaguti/mogiri#readme",
+  "homepage": "https://github.com/1on1guide-org/mogiri-lite#readme",
   "dependencies": {
-    "axios": "^0.21.1",
     "config": "^3.3.6",
     "discord.js": "^12.5.3",
-    "dumpjs": "^0.2.1",
     "express": "^4.17.1",
     "google-spreadsheet": "^3.1.15",
     "log4js": "^6.3.0",
-    "node-localstorage": "^2.1.6",
     "value-schema": "^3.0.0",
     "yaml": "^1.10.2"
   },
   "devDependencies": {
     "jest": "^26.6.3",
-    "json-server": "^0.16.3",
     "simple-git-hooks": "^2.4.1",
     "yarnhook": "^0.5.1"
   },

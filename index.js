@@ -10,7 +10,7 @@ const client = new Discord.Client();
 logger.info(`Mogiri Version ${process.env.npm_package_version}.`)
 logger.info(`Log category is "${logger.category}".`)
 
-const W_CHANNELS = config.discord.observation ?? ["受付", "実行委員会", "品川"]
+const W_CHANNELS = config.discord.observation ?? ["mogiri","受付","フロント"]
 function isWatchChannel(channel_name) {
   return W_CHANNELS.includes(channel_name)
 }
