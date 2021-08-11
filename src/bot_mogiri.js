@@ -20,9 +20,9 @@ const PERMISSION_FILE =  config.invitation.filePath;
 const PERMISSIONS = YAML
     .parse(fs.readFileSync(PERMISSION_FILE, 'utf8'))
 
-const { GoogleSpreadsheet } = require('google-spreadsheet');
-const doc = new GoogleSpreadsheet(config.googlespreadsheet.sheetid);
-const credentials = config.googlespreadsheet.credentials;
+// const { GoogleSpreadsheet } = require('google-spreadsheet');
+// const doc = new GoogleSpreadsheet(config.googlespreadsheet.sheetid);
+// const credentials = config.googlespreadsheet.credentials;
 
 // Mogiri が動作する正規表現パターン
 const PATTERNS = [
@@ -99,12 +99,12 @@ class BotMogiri extends BotBase {
    * 招待リストによる参加確認
    * @param {object} match result of RegExp#exec
    */
-  async referPermission(match) {
-    const {author} = this.message
+  referPermission(match) {
+        const {author} = this.message
     if (!PERMISSIONS.includes(author.tag)) {
-      if ( !await findInvitaiton(author.tag)) {
+//      if ( !await findInvitaiton(author.tag)) {
         throw new NotFoundInInviteList()
-      }
+//      }
     }    
 
     this.atacheDiscordRole()
