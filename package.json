@@ -18,6 +18,7 @@
   "homepage": "https://github.com/kawaguti/mogiri#readme",
   "dependencies": {
     "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
     "node": "^16.14.2"
   },
   "devDependencies": {
