@@ -1,8 +1,0 @@
-###
-GET http://localhost:3000/v3/orders HTTP/1.1
-
-###
-GET http://localhost:3000/v3/orders/9876543210 HTTP/1.1
-
-###
-GET http://localhost:3000/v3/orders/9876543210/attendees HTTP/1.1
