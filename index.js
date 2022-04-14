@@ -1,48 +1,67 @@
-const Discord = require('discord.js');
-const config = require('config');
-const {logger} = require('./src/logger')
-const BotTsukkomi = require('./src/bot_tsukkomi')
-const BotGacha = require('./src/bot_gacha');
-const BotMogiri = require('./src/bot_mogiri');
+// Require the necessary discord.js classes
+const { Client, Intents } = require('discord.js');
+const { token, eventbrite_private_key, discord_role, eventbrite_event_id } = require('./config.json');
+const axios = require('axios');
 
-const client = new Discord.Client();
+// Create a new client instance
+const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-logger.info(`Mogiri Version ${process.env.npm_package_version}.`)
-logger.info(`Log category is "${logger.category}".`)
-
-const W_CHANNELS = config.discord.observation ?? ["受付", "実行委員会", "品川"]
-function isWatchChannel(channel_name) {
-  return W_CHANNELS.includes(channel_name)
-}
-
+// When the client is ready, run this code (only once)
 client.once('ready', () => {
-  logger.debug('This bot is online!');
-  logger.debug(`start observating ${W_CHANNELS}`)
-})
+	console.log('Ready!');
+});
 
-const bots = [BotTsukkomi, BotMogiri, BotGacha].map(it => new it())
-client.on('message', message => {
-  if( message.author.bot) return;
+client.on('interactionCreate', async interaction => {
+	if (!interaction.isCommand()) return;
 
-  console.log("channel: " + message.channel.name);
-  if(!isWatchChannel(message.channel.name)) return;
+    const { commandName } = interaction;
+    const ordernumber = interaction.options.getString('ordernumber');
+	console.log(ordernumber);
 
-  bots.forEach(async it => await it.commit(message))
-})
+	if (commandName === 'ping') {
+		await interaction.reply('Pong!');
+	} else if (commandName === 'server') {
+		await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
+	} else if (commandName === 'user') {
+		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+    } else if (commandName === 'devopsdays') {
+        const channelId = interaction.channelId;
+        const member = interaction.member;
+        const role = interaction.guild.roles.cache.find(role => role.name === discord_role);
+        if (role) {
+            if (interaction.member.roles.cache.some(role => role.name === discord_role)) {
+                client.channels.cache.get(channelId).send("すでに" + role.name + "のロールをお持ちでした！");
+            }
+        } else {
+            client.channels.cache.get(channelId).send(discord_role + "のロールがサーバー上に見つかりませんでした");
+        }
+        await interaction.reply(`Welcome to DevOpsDays Tokyo: ${interaction.user.tag}\nYour id: ${interaction.user.id}\nYour Order Number: ${interaction.options.getString('ordernumber')}`);
+        const re = /#(\d{10})([^\d]|$)/;
+        if (( match_strings = re.exec(interaction.options.getString('ordernumber'))) !== null) {
+            const eventbrite_order_id = match_strings[1];
+            axios.get('https://www.eventbriteapi.com/v3/orders/'
+                    + eventbrite_order_id,
+                    { headers: {
+                        Authorization: `Bearer ${eventbrite_private_key}`,
+                    }
+            })
+            .then(function (response) {
+                if (response.data.event_id == eventbrite_event_id) {
+                    console.log('okmaru!');
+                    client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
+                    member.roles.add(role);
+                    client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
+                }
+            })
+            .catch(function (error) {
+                console.log('damemaru!');
+                client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
+            })
+        } else {
+            client.channels.cache.get(channelId).send(interaction.options.getString('ordernumber') + "はEventbriteオーダー番号の形式ではありません。")
+        }
+    }
+});
 
-
-client.login(config.discord.privateKey);
-
-
-// for docker keep-alive in azure
-const express = require('express')
-const app = express()
-const port = 8080
-
-app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
-
-app.listen(port, () => {
-  logger.debug(`http listening at http://localhost:${port}`)
-})
+// Login to Discord with your client's token
+client.login(token);
