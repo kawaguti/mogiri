@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
-const { token, eventbrite_private_key, discord_role } = require('./config.json');
+const { token, eventbrite_private_key, discord_role, eventbrite_event_id } = require('./config.json');
 const axios = require('axios');
 
 // Create a new client instance
@@ -46,18 +46,19 @@ client.on('interactionCreate', async interaction => {
                     }
             })
             .then(function (response) {
-                // if ( isForThisEvent(message, eventbrite_order_id, response) &&
-                //     isValidOrderOnEventbrite(message, eventbrite_order_id, response)) {
-                //     setDiscordRole(message);
-                // }
-                console.log('okmaru!');
-                client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
-                member.roles.add(role);
-                client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
+                if (response.data.event_id == eventbrite_event_id) {
+                    console.log('okmaru!');
+                    client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
+                    member.roles.add(role);
+                    client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
+                }
             })
-            // .catch(function (error) {
-            //     //messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
-            // })
+            .catch(function (error) {
+                console.log('damemaru!');
+                client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
+            })
+        } else {
+            client.channels.cache.get(channelId).send(interaction.options.getString('ordernumber') + "はEventbriteオーダー番号の形式ではありません。")
         }
     }
 });
