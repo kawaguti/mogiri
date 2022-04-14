@@ -25,6 +25,7 @@ client.on('interactionCreate', async interaction => {
 	} else if (commandName === 'user') {
 		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
     } else if (commandName === 'devopsdays') {
+        const channelId = interaction.channelId;
 		await interaction.reply(`Welcome to DevOpsDays Tokyo: ${interaction.user.tag}\nYour id: ${interaction.user.id}\nYour Order Number: ${interaction.options.getString('ordernumber')}`);
         const re = /#(\d{10})([^\d]|$)/;
         if (( match_strings = re.exec(interaction.options.getString('ordernumber'))) !== null) {
@@ -41,10 +42,11 @@ client.on('interactionCreate', async interaction => {
                 //     setDiscordRole(message);
                 // }
                 console.log('okmaru!');
+                client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
             })
-            .catch(function (error) {
-                messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
-            })
+            // .catch(function (error) {
+            //     //messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
+            // })
         }
     }
 });
