@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
-const { token, eventbrite_private_key } = require('./config.json');
+const { token, eventbrite_private_key, discord_role } = require('./config.json');
 const axios = require('axios');
 
 // Create a new client instance
@@ -26,7 +26,16 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
     } else if (commandName === 'devopsdays') {
         const channelId = interaction.channelId;
-		await interaction.reply(`Welcome to DevOpsDays Tokyo: ${interaction.user.tag}\nYour id: ${interaction.user.id}\nYour Order Number: ${interaction.options.getString('ordernumber')}`);
+        const member = interaction.member;
+        const role = interaction.guild.roles.cache.find(role => role.name === discord_role);
+        if (role) {
+            if (interaction.member.roles.cache.some(role => role.name === discord_role)) {
+                client.channels.cache.get(channelId).send("すでに" + role.name + "のロールをお持ちでした！");
+            }
+        } else {
+            client.channels.cache.get(channelId).send(discord_role + "のロールがサーバー上に見つかりませんでした");
+        }
+        await interaction.reply(`Welcome to DevOpsDays Tokyo: ${interaction.user.tag}\nYour id: ${interaction.user.id}\nYour Order Number: ${interaction.options.getString('ordernumber')}`);
         const re = /#(\d{10})([^\d]|$)/;
         if (( match_strings = re.exec(interaction.options.getString('ordernumber'))) !== null) {
             const eventbrite_order_id = match_strings[1];
@@ -43,6 +52,8 @@ client.on('interactionCreate', async interaction => {
                 // }
                 console.log('okmaru!');
                 client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
+                member.roles.add(role);
+                client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
             })
             // .catch(function (error) {
             //     //messageNotFoundOnEventbrite(message, eventbrite_order_id, error);
