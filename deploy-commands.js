@@ -7,7 +7,11 @@ const commands = [
 	new SlashCommandBuilder().setName('ping').setDescription('Replies with pong!'),
 	new SlashCommandBuilder().setName('server').setDescription('Replies with server info!'),
 	new SlashCommandBuilder().setName('user').setDescription('Replies with user info!'),
-	new SlashCommandBuilder().setName('devopsdays').setDescription('Replies with DevOpsDays Admission!'),
+    new SlashCommandBuilder().setName('devopsdays').setDescription('Replies with DevOpsDays Admission!')
+    	.addStringOption(option =>
+		option.setName('ordernumber')
+			.setDescription('Eventbrite Order Number')
+			.setRequired(true)),
 ]
 	.map(command => command.toJSON());
 

@@ -13,7 +13,9 @@ client.once('ready', () => {
 client.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
-	const { commandName } = interaction;
+    const { commandName } = interaction;
+    const ordernumber = interaction.options.getString('ordernumber');
+	console.log(ordernumber);
 
 	if (commandName === 'ping') {
 		await interaction.reply('Pong!');
@@ -22,7 +24,7 @@ client.on('interactionCreate', async interaction => {
 	} else if (commandName === 'user') {
 		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
     } else if (commandName === 'devopsdays') {
-		await interaction.reply(`Welcome to DevOpsDays Tokyo: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+		await interaction.reply(`Welcome to DevOpsDays Tokyo: ${interaction.user.tag}\nYour id: ${interaction.user.id}\nYour Order Number: ${interaction.options.getString('ordernumber')}`);
 	}
 });
 
