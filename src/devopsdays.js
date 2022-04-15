@@ -2,11 +2,11 @@
 
 const { eventbrite_private_key, eventbrite_event_id, discord_role } = require('../config.json');
 const axios = require('axios');
+const orderid = require('./orderid.js');
 
-module.exports = (client, interaction) => {
+module.exports = (client, interaction, ordernumber) => {
     const channelId = interaction.channelId;
     const member = interaction.member;
-    const ordernumber = interaction.options.getString('ordernumber');
 
     // check roles
     const role = interaction.guild.roles.cache.find(role => role.name === discord_role);
@@ -19,13 +19,10 @@ module.exports = (client, interaction) => {
     }
 
     // check eventbrite_order_id format
-    const re = /(\d{10})/;
-    if ( re.exec(ordernumber) == null) {
+    const eventbrite_order_id = orderid(ordernumber);
+    if ( !eventbrite_order_id ) {
         return ordernumber + "はEventbriteオーダー番号の形式ではありません。";
     }
-
-    // capture eventbrite_order_id
-    const eventbrite_order_id = re.exec(ordernumber)[1];
 
     // asking for eventbrite
     axios.get('https://www.eventbriteapi.com/v3/orders/'

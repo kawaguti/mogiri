@@ -5,7 +5,6 @@ const { Client, Intents } = require('discord.js');
 const { token, mogiri_response } = require('./config.json');
 const devopsdays = require('./src/devopsdays.js');
 
-
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -26,7 +25,8 @@ client.on('interactionCreate', async interaction => {
 
 	// devopsdays
 	if (commandName === 'devopsdays') {
-		await interaction.reply(devopsdays(client, interaction));
+		const ordernumber = interaction.options.getString('ordernumber');
+		await interaction.reply(devopsdays(client, interaction, ordernumber));
 	}
 });
 
