@@ -24,13 +24,13 @@ client.on('interactionCreate', async interaction => {
 	// devopsdays
 	if (commandName === 'devopsdays') {
 		const channelId = interaction.channelId;
-        const member = interaction.member;
-    	const ordernumber = interaction.options.getString('ordernumber');
+	   	const member = interaction.member;
+		const ordernumber = interaction.options.getString('ordernumber');
 
 		// check roles
 		const role = interaction.guild.roles.cache.find(role => role.name === discord_role);
 		if (role == "") {
-            await interaction.reply(discord_role + "のロールがサーバー上に見つかりませんでした");
+			await interaction.reply(discord_role + "のロールがサーバー上に見つかりませんでした");
 			return;
 		} else if (interaction.member.roles.cache.some(role => role.name === discord_role)) {
 			await interaction.reply("すでに" + role.name + "のロールをお持ちでした！");
@@ -51,23 +51,23 @@ client.on('interactionCreate', async interaction => {
 		// asking for eventbrite
 		if ( eventbrite_order_id ) {
 			axios.get('https://www.eventbriteapi.com/v3/orders/'
-                    + eventbrite_order_id,
-                    { headers: {
-                        Authorization: `Bearer ${eventbrite_private_key}`,
-                    }
-            })
-            .then(function (response) {
-                if (response.data.event_id == eventbrite_event_id) {
-                    client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
-                    member.roles.add(role);
-                    client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
-                }
-            })
-            .catch(function (error) {
-                client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
-            })
-        }
-    }
+					+ eventbrite_order_id,
+					{ headers: {
+						Authorization: `Bearer ${eventbrite_private_key}`,
+					}
+			})
+			.then(function (response) {
+				if (response.data.event_id == eventbrite_event_id) {
+					client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
+					member.roles.add(role);
+					client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
+				}
+			})
+			.catch(function (error) {
+				client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
+			})
+		}
+	}
 });
 
 // Login to Discord with your client's token
