@@ -65,3 +65,14 @@ client.on('interactionCreate', async interaction => {
 
 // Login to Discord with your client's token
 client.login(token);
+
+
+// for docker keep-alive in azure
+var http = require('http');
+ 
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/plain'});
+  res.end('Hello World\n');
+}).listen(8080);
+ 
+console.log('Server running at http://localhost:8080/');
