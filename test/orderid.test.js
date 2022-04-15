@@ -16,4 +16,10 @@ describe('ordernumber', function(){
    it('should be false if ordernumver is #123456789', function(){
       orderid('#123456789').should.equal(false);
    });
+   it('should be false if ordernumver is #12345678901', function(){
+      orderid('#12345678901').should.equal(false);
+   });
+   it('should be false if ordernumver is 12345678901', function(){
+      orderid('12345678901').should.equal(false);
+   });
 });
