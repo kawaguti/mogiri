@@ -38,7 +38,7 @@ client.on('interactionCreate', async interaction => {
 		}
 
 		// check eventbrite_order_id format
-		const re = /#(\d{10})([^\d]|$)/;
+		const re = /(\d{10})/;
 		if ( re.exec(ordernumber) == null) {
 			await interaction.reply(ordernumber + "はEventbriteオーダー番号の形式ではありません。");
 			return;
