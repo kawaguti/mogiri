@@ -49,7 +49,6 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply("Asking for Eventbrite: " + eventbrite_order_id);
 
 		// asking for eventbrite
-		if ( eventbrite_order_id ) {
 			axios.get('https://www.eventbriteapi.com/v3/orders/'
 					+ eventbrite_order_id,
 					{ headers: {
@@ -68,7 +67,6 @@ client.on('interactionCreate', async interaction => {
 			.catch(function (error) {
 				client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
 			})
-		}
 	}
 });
 
