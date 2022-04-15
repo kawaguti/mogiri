@@ -18,12 +18,8 @@ client.on('interactionCreate', async interaction => {
     const ordernumber = interaction.options.getString('ordernumber');
 	console.log(ordernumber);
 
-	if (commandName === 'ping') {
-		await interaction.reply('Pong!');
-	} else if (commandName === 'server') {
-		await interaction.reply(`Server name: ${interaction.guild.name}\nTotal members: ${interaction.guild.memberCount}`);
-	} else if (commandName === 'user') {
-		await interaction.reply(`Your tag: ${interaction.user.tag}\nYour id: ${interaction.user.id}`);
+	if (commandName === 'mogiri') {
+		await interaction.reply('ワタシハmogiriデス。って機械かーい！');
     } else if (commandName === 'devopsdays') {
         const channelId = interaction.channelId;
         const member = interaction.member;
