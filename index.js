@@ -49,24 +49,24 @@ client.on('interactionCreate', async interaction => {
 		await interaction.reply("Asking for Eventbrite: " + eventbrite_order_id);
 
 		// asking for eventbrite
-			axios.get('https://www.eventbriteapi.com/v3/orders/'
-					+ eventbrite_order_id,
-					{ headers: {
-						Authorization: `Bearer ${eventbrite_private_key}`,
-					}
-			})
-			.then(function (response) {
-				if (response.data.event_id == eventbrite_event_id) {
-					client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
-					member.roles.add(role);
-					client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
-				} else {
-					client.channels.cache.get(channelId).send(eventbrite_order_id + "は別のイベントのオーダー番号のようです。 https://www.eventbrite.com/e/" + response.data.event_id)
+		axios.get('https://www.eventbriteapi.com/v3/orders/'
+				+ eventbrite_order_id,
+				{ headers: {
+					Authorization: `Bearer ${eventbrite_private_key}`,
 				}
-			})
-			.catch(function (error) {
-				client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
-			})
+		})
+		.then(function (response) {
+			if (response.data.event_id == eventbrite_event_id) {
+				client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
+				member.roles.add(role);
+				client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
+			} else {
+				client.channels.cache.get(channelId).send(eventbrite_order_id + "は別のイベントのオーダー番号のようです。 https://www.eventbrite.com/e/" + response.data.event_id)
+			}
+		})
+		.catch(function (error) {
+			client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
+		})
 	}
 });
 
