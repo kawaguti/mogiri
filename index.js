@@ -30,9 +30,11 @@ client.on('interactionCreate', async interaction => {
 		// check roles
 		const role = interaction.guild.roles.cache.find(role => role.name === discord_role);
 		if (role == "") {
+			// no suiteble roles in this server
 			await interaction.reply(discord_role + "のロールがサーバー上に見つかりませんでした");
 			return;
 		} else if (interaction.member.roles.cache.some(role => role.name === discord_role)) {
+			// already have the role
 			await interaction.reply("すでに" + role.name + "のロールをお持ちでした！");
 			return;
 		}
@@ -57,14 +59,17 @@ client.on('interactionCreate', async interaction => {
 		})
 		.then(function (response) {
 			if (response.data.event_id == eventbrite_event_id) {
+				// for this event
 				client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
 				member.roles.add(role);
 				client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
 			} else {
+				// not for this event
 				client.channels.cache.get(channelId).send(eventbrite_order_id + "は別のイベントのオーダー番号のようです。 https://www.eventbrite.com/e/" + response.data.event_id)
 			}
 		})
 		.catch(function (error) {
+			// invalid order id
 			client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。")
 		})
 	}
