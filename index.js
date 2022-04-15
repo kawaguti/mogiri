@@ -61,6 +61,8 @@ client.on('interactionCreate', async interaction => {
 					client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
 					member.roles.add(role);
 					client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
+				} else {
+					client.channels.cache.get(channelId).send(eventbrite_order_id + "は別のイベントのオーダー番号のようです。 https://www.eventbrite.com/e/" + response.data.event_id)
 				}
 			})
 			.catch(function (error) {
