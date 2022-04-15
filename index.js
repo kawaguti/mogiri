@@ -1,6 +1,10 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
-const { token, eventbrite_private_key, discord_role, eventbrite_event_id } = require('./config.json');
+const { token, 
+		eventbrite_private_key, 
+		eventbrite_event_id, 
+		discord_role, 
+		mogiri_response } = require('./config.json');
 const axios = require('axios');
 
 // Create a new client instance
@@ -17,7 +21,7 @@ client.on('interactionCreate', async interaction => {
 
 	// mogiri
 	if (commandName === 'mogiri') {
-		await interaction.reply('ワタシハmogiriデス。って機械かーい！');
+		await interaction.reply(mogiri_response);
 		return;
 	}
 
