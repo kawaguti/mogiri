@@ -26,8 +26,22 @@ client.on('interactionCreate', async interaction => {
 	// devopsdays
 	if (commandName === 'devopsdays') {
 		const ordernumber = interaction.options.getString('ordernumber');
-		await interaction.reply(devopsdays(client, interaction, ordernumber));
+		const member = interaction.member;
+		await interaction.reply(devopsdays(client, interaction, ordernumber, member));
 	}
+
+	// welcome-devopsdays
+	if (commandName === 'welcome-devopsdays') {
+		const ordernumber = interaction.options.getString('ordernumber');
+		const memberid = interaction.options.getString('memberid');
+		const member = interaction.guild.members.cache.get(memberid);
+		if (!member) {
+			await interaction.reply(memberid + "というメンバーが見つかりませんでした");
+			return;
+		}
+		await interaction.reply(devopsdays(client, interaction, ordernumber, member));
+	}
+	
 });
 
 // Login to Discord with your client's token

@@ -10,7 +10,16 @@ const commands = [
 		option.setName('ordernumber')
 			.setDescription('Eventbrite Order Number')
 			.setRequired(true)),
-]
+	new SlashCommandBuilder().setName('welcome-devopsdays').setDescription('Replies with DevOpsDays Admission!')
+			.addStringOption(option =>
+			option.setName('ordernumber')
+				.setDescription('Eventbrite Order Number')
+				.setRequired(true))
+			.addStringOption(option =>
+				option.setName('memberid')
+					.setDescription('Discord Member ID')
+					.setRequired(true)),	
+	]
 	.map(command => command.toJSON());
 
 const rest = new REST({ version: '9' }).setToken(token);

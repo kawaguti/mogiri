@@ -4,9 +4,8 @@ const { eventbrite_private_key, eventbrite_event_id, discord_role } = require('.
 const axios = require('axios');
 const orderid = require('./orderid.js');
 
-module.exports = (client, interaction, ordernumber) => {
+module.exports = (client, interaction, ordernumber, member) => {
     const channelId = interaction.channelId;
-    const member = interaction.member;
 
     // check roles
     const role = interaction.guild.roles.cache.find(role => role.name === discord_role);
