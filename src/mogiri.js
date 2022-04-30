@@ -9,7 +9,7 @@ module.exports = (client, interaction, ordernumber, member, conference_name ) =>
 
     // check roles
     const role = interaction.guild.roles.cache.find(role => role.name === conferences[conference_name].discord_role);
-    if (role == "") {
+    if (!role) {
         // no suiteble roles in this server
         return conferences[conference_name].discord_role + "のロールがサーバー上に見つかりませんでした";
     } else if (interaction.member.roles.cache.some(role => role.name === conferences[conference_name].discord_role)) {
