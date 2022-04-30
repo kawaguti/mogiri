@@ -1,18 +1,18 @@
 'use strict';
 
-const { eventbrite_private_key, eventbrite_event_id, discord_role } = require('../config.json');
+const { conferences } = require('../config.json');
 const axios = require('axios');
 const orderid = require('./orderid.js');
 
-module.exports = (client, interaction, ordernumber, member) => {
+module.exports = (client, interaction, ordernumber, member, conference_name ) => {
     const channelId = interaction.channelId;
 
     // check roles
-    const role = interaction.guild.roles.cache.find(role => role.name === discord_role);
+    const role = interaction.guild.roles.cache.find(role => role.name === conferences[conference_name].discord_role);
     if (role == "") {
         // no suiteble roles in this server
-        return discord_role + "のロールがサーバー上に見つかりませんでした";
-    } else if (interaction.member.roles.cache.some(role => role.name === discord_role)) {
+        return conferences[conference_name].discord_role + "のロールがサーバー上に見つかりませんでした";
+    } else if (interaction.member.roles.cache.some(role => role.name === conferences[conference_name].discord_role)) {
         // already have the role
         return "すでに" + role.name + "のロールをお持ちでした！";
     }
@@ -27,11 +27,11 @@ module.exports = (client, interaction, ordernumber, member) => {
     axios.get('https://www.eventbriteapi.com/v3/orders/'
             + eventbrite_order_id,
             { headers: {
-                Authorization: `Bearer ${eventbrite_private_key}`,
+                Authorization: `Bearer ${conferences[conference_name].eventbrite_private_key}`,
             }
     })
     .then(function (response) {
-        if (response.data.event_id == eventbrite_event_id) {
+        if (response.data.event_id == conferences[conference_name].eventbrite_event_id) {
             // for this event
             client.channels.cache.get(channelId).send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。")
             member.roles.add(role);

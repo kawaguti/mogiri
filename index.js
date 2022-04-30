@@ -2,8 +2,11 @@
 
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
-const { token, mogiri_response } = require('./config.json');
+const { token, mogiri_response, conferences } = require('./config.json');
 const devopsdays = require('./src/devopsdays.js');
+
+const conference_names = Object.keys(conferences);
+conference_names.map(name => console.log(name));
 
 // Create a new client instance
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
@@ -23,15 +26,15 @@ client.on('interactionCreate', async interaction => {
 		return;
 	}
 
-	// devopsdays
-	if (commandName === 'devopsdays') {
+	// $conferences
+	if ( conferences[commandName] ) {
 		const ordernumber = interaction.options.getString('ordernumber');
 		const member = interaction.member;
-		await interaction.reply(devopsdays(client, interaction, ordernumber, member));
+		await interaction.reply(devopsdays(client, interaction, ordernumber, member, commandName));
 	}
 
-	// welcome-devopsdays
-	if (commandName === 'welcome-devopsdays') {
+	// welcome-$conferences
+	if ( conferences[commandName.substring(8)] ) {
 		const ordernumber = interaction.options.getString('ordernumber');
 		const memberid = interaction.options.getString('memberid');
 		const member = interaction.guild.members.cache.get(memberid);
@@ -39,7 +42,9 @@ client.on('interactionCreate', async interaction => {
 			await interaction.reply(memberid + "というメンバーが見つかりませんでした");
 			return;
 		}
-		await interaction.reply(devopsdays(client, interaction, ordernumber, member));
+		await interaction.reply(devopsdays(
+			client, interaction, ordernumber, member, 
+			commandName.substring(8)));
 	}
 	
 });
