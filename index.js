@@ -3,7 +3,7 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
 const { token, mogiri_response, conferences } = require('./config.json');
-const devopsdays = require('./src/devopsdays.js');
+const mogiri = require('./src/mogiri.js');
 
 const conference_names = Object.keys(conferences);
 conference_names.map(name => console.log(name));
@@ -30,7 +30,7 @@ client.on('interactionCreate', async interaction => {
 	if ( conferences[commandName] ) {
 		const ordernumber = interaction.options.getString('ordernumber');
 		const member = interaction.member;
-		await interaction.reply(devopsdays(client, interaction, ordernumber, member, commandName));
+		await interaction.reply(mogiri(client, interaction, ordernumber, member, commandName));
 	}
 
 	// welcome-$conferences
@@ -42,7 +42,7 @@ client.on('interactionCreate', async interaction => {
 			await interaction.reply(memberid + "というメンバーが見つかりませんでした");
 			return;
 		}
-		await interaction.reply(devopsdays(
+		await interaction.reply(mogiri(
 			client, interaction, ordernumber, member, 
 			commandName.substring(8)));
 	}
