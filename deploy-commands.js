@@ -11,9 +11,6 @@ commands.push(
 
 Object.keys(conferences).map(name => { 
 	console.log(name);
-	console.log(conferences[name].eventbrite_private_key);
-	console.log(conferences[name].discord_role);
-	console.log(conferences[name].eventbrite_event_id);
 
 	commands.push(
 		new SlashCommandBuilder().setName(name).setDescription('Replies with ' + name + 'Admission!')
