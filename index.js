@@ -30,21 +30,28 @@ client.on('interactionCreate', async interaction => {
 	if ( conferences[commandName] ) {
 		const ordernumber = interaction.options.getString('ordernumber');
 		const member = interaction.member;
-		await interaction.reply(mogiri(client, interaction, ordernumber, member, commandName));
+		const conference_name = commandName;
+		await interaction.reply(mogiri(client, interaction, 
+			ordernumber, member, conference_name));
 	}
 
 	// welcome-$conferences
 	if ( conferences[commandName.substring(8)] ) {
-		const ordernumber = interaction.options.getString('ordernumber');
+
+		//check : the member is exist
 		const memberid = interaction.options.getString('memberid');
-		const member = interaction.guild.members.cache.get(memberid);
-		if (!member) {
+		const member_check = interaction.guild.members.cache.get(memberid);
+		if (!member_check) {
 			await interaction.reply(memberid + "というメンバーが見つかりませんでした");
 			return;
 		}
-		await interaction.reply(mogiri(
-			client, interaction, ordernumber, member, 
-			commandName.substring(8)));
+
+		// $conferences
+		const ordernumber = interaction.options.getString('ordernumber');
+		const member = member_check;
+		const conference_name = commandName.substring(8);
+		await interaction.reply(mogiri(client, interaction, 
+			ordernumber, member, conference_name));
 	}
 	
 });
