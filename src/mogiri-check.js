@@ -20,9 +20,9 @@ module.exports = (client, interaction, conference_name ) => {
     
     const has_role = interaction.member.roles.cache.some(role => role.name === conferences[conference_name].discord_role);
     if (has_role) {
-        channel.send( role.name + "のロールをお持ちでした！" );
+        channel.send( conferences[conference_name].discord_role + "のロールをお持ちでした！" );
     } else {
-        channel.send( role.name + "のロールをお持ちではありませんでした！" );
+        channel.send( conferences[conference_name].discord_role + "のロールをお持ちではありませんでした！" );
     }
 
     // asking for eventbrite
