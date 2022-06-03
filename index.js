@@ -29,8 +29,10 @@ client.on('interactionCreate', async interaction => {
 
 	// mogiri-check
 	if (commandName === 'mogiri-check') {
-		const conference_name = conference_names[0];
-		await interaction.reply(mogiri_check(client, interaction, conference_name));
+		conference_names.forEach ( conference_name => {
+			mogiri_check(client, interaction, conference_name);
+		});
+		await interaction.reply("mogiri-check");
 		return;
 	}
 
