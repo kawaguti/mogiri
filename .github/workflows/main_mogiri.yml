@@ -21,6 +21,11 @@ jobs:
         with:
           node-version: '16.x'
 
+      - name: Decrypt secret
+        run: ./.github/scripts/decrypt_secret.sh
+        env:
+          SECRET_PASSPHRASE: ${{ secrets.SECRET_PASSPHRASE }}
+
       - name: npm install, build, and test
         run: |
           npm install
