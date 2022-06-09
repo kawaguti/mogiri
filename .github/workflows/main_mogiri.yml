@@ -22,7 +22,7 @@ jobs:
           node-version: '16.x'
 
       - name: Decrypt secret
-        run: ./.github/scripts/decrypt_secret.sh
+        run: /bin/sh ./.github/scripts/decrypt_secret.sh
         env:
           SECRET_PASSPHRASE: ${{ secrets.SECRET_PASSPHRASE }}
 
