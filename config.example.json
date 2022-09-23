@@ -1,7 +1,6 @@
 {
     "mogiri_response": "This is an example config.json file",
     "clientId": "1234567890123456789 <- take from Discord Developer Portal",
-    "guildId": "123456789012345678 <- take from Discord Server",
     "token": "AAAAAAAAAAAAAAAAAAAAAAAA.AAAAAA.AAAAAAAAAAAAAAAAAAAAAAAAAAA <- take from Discord Developer Portal",
     "conferences" : {
         "scrumfest-niigata" : {
@@ -15,6 +14,20 @@
             "eventbrite_event_id": "123456789012 <- take from Eventbrite Event URL",
             "discord_role": "CCCCCCC <- make this role in Discord Server",
             "ordernumber_for_test": "1234567890 <- take from Eventbrite"
+        }
+    },
+    "guilds" : {
+        "ScrumFestSapporo" : {
+            "guildId": "123456789012345678 <- Discord server/guild ID",
+            "conferences": [
+                "scrum-fest-sapporo <- same as conference name above"
+            ]
+        },
+        "ScrumFestOsaka" : {
+            "guildId": "123456789012345678 <- Discord server/guild ID",
+            "conferences": [
+                "rsgt2023"
+            ]
         }
     }
 }
