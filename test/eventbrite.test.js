@@ -5,8 +5,8 @@ const { conferences } = require('../config.json');
 const axios = require('axios');
 
 describe('eventbrite', function(){
-    it('should be scrumfest-sapporo if ordernumber is $ordernumber_for_test', function(){
-        const conference_name = "scrumfest-sapporo";
+    it('should be scrum-fest-sapporo if ordernumber is $ordernumber_for_test', function(){
+        const conference_name = "scrum-fest-sapporo";
         const eventbrite_order_id = conferences[conference_name].ordernumber_for_test;
         axios.get('https://www.eventbriteapi.com/v3/orders/'
         + eventbrite_order_id,
