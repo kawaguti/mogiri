@@ -5,7 +5,7 @@ const { conferences, guilds } = require('../config.json');
 
 describe('guildss', function(){
     it('should be ScrumFestOsaka has scrum-fest-fukuoka command', function(){
-        guilds["ScrumFestOsaka"].conferences.should.deepEqual(["scrum-fest-fukuoka"]);
+        guilds["ScrumFestOsaka"].conferences.should.deepEqual(["devopsdays-tokyo"]);
     })
 
 })
