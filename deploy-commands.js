@@ -15,14 +15,14 @@ Object.keys(guilds).map ( name => {
 		commands.push( new SlashCommandBuilder().setName('mogiri').setDescription('Replies with hi!'));
 		commands.push( new SlashCommandBuilder().setName('mogiri-check').setDescription('Tests!'));
 		commands.push(
-			new SlashCommandBuilder().setName(name).setDescription('Replies with ' + name + 'Admission!')
+			new SlashCommandBuilder().setName(name).setDescription('Replies with ' + name + ' Admission!')
 			.addStringOption(option =>
 				option.setName('ordernumber')
 					.setDescription('Eventbrite Order Number')
 					.setRequired(true))
 		);
 		commands.push(
-			new SlashCommandBuilder().setName('welcome-' + name).setDescription('Replies with ' + name + 'Admission!')
+			new SlashCommandBuilder().setName('welcome-' + name).setDescription('Replies with ' + name + ' Admission!')
 			.addStringOption(option =>
 			option.setName('ordernumber')
 				.setDescription('Eventbrite Order Number')
