@@ -9,11 +9,12 @@ Object.keys(guilds).map ( name => {
 	const guildId = guilds[name].guildId;
 	console.log(guildId);
 
+	console.log(name);
+	const commands = [];
+	commands.push( new SlashCommandBuilder().setName('mogiri').setDescription('Replies with hi!'));
+	commands.push( new SlashCommandBuilder().setName('mogiri-check').setDescription('Tests!'));
+
 	guilds[name].conferences.map ( name => {
-		console.log(name);
-		const commands = [];
-		commands.push( new SlashCommandBuilder().setName('mogiri').setDescription('Replies with hi!'));
-		commands.push( new SlashCommandBuilder().setName('mogiri-check').setDescription('Tests!'));
 		commands.push(
 			new SlashCommandBuilder().setName(name).setDescription('Replies with ' + name + ' Admission!')
 			.addStringOption(option =>
@@ -32,10 +33,12 @@ Object.keys(guilds).map ( name => {
 					.setDescription('Discord Member ID')
 					.setRequired(true))
 		);
-		const commandsJson = commands.map(command => command.toJSON());
-		const rest = new REST({ version: '9' }).setToken(token);
-		rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commandsJson })
-				.then(() => console.log('Successfully registered application commands.'))
-				.catch(console.error);	
 	});
+
+	const commandsJson = commands.map(command => command.toJSON());
+	console.log(commandsJson);
+	const rest = new REST({ version: '9' }).setToken(token);
+	rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commandsJson })
+			.then(() => console.log('Successfully registered application commands.'))
+			.catch(console.error);	
 });
