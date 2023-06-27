@@ -22,17 +22,6 @@ Object.keys(guilds).map ( name => {
 					.setDescription('Eventbrite Order Number')
 					.setRequired(true))
 		);
-		commands.push(
-			new SlashCommandBuilder().setName('welcome-' + name).setDescription('Replies with ' + name + ' Admission!')
-			.addStringOption(option =>
-			option.setName('ordernumber')
-				.setDescription('Eventbrite Order Number')
-				.setRequired(true))
-			.addStringOption(option =>
-				option.setName('memberid')
-					.setDescription('Discord Member ID')
-					.setRequired(true))
-		);
 	});
 
 	const commandsJson = commands.map(command => command.toJSON());
