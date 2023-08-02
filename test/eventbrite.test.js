@@ -6,8 +6,8 @@ const axios = require('axios');
 
 describe('eventbrite', function(){
     it('should be scrumfest-osaka if ordernumber is $ordernumber_for_test', function(){
-        const conference_name = "scrumfest-osaka";
-        const eventbrite_order_id = "6805391359";
+        const conference_name = "scrumfest-sendai";
+        const eventbrite_order_id = "7307425449";
         axios.get('https://www.eventbriteapi.com/v3/orders/'
         + eventbrite_order_id,
         { headers: {

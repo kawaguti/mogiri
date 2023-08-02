@@ -3,9 +3,12 @@
 const should  = require('should');
 const { conferences, guilds } = require('../config.json');
 
-describe('guildss', function(){
+describe('guilds', function(){
     it('should be ScrumFestOsaka has scrumfest-osaka command', function(){
-        guilds["ScrumFestOsaka"].conferences.should.deepEqual(["scrumfest-osaka", "scrumfest-mikawa"]);
+        guilds["ScrumFestOsaka"].conferences.should.deepEqual(["scrumfest-sendai","scrumfest-mikawa"]);
+    })
+    it('should be ScrumFestSapporo has scrumfest-sapporo command', function(){
+        guilds["ScrumFestSapporo"].conferences.should.deepEqual(["scrum-fest-sapporo"]);
     })
 
 })
