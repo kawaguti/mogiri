@@ -31,9 +31,9 @@ describe('eventbrite', function(){
             response.data.event_id.should.equal(conferences[conference_name].eventbrite_event_id);
         });
     });
-    it('should be woman-in-agile if ordernumber is $ordernumber_for_test', function(){
-        const conference_name = "woman-in-agile";
-        const eventbrite_order_id = "8710421479";
+    it('should be devopsdays-tokyo if ordernumber is $ordernumber_for_test', function(){
+        const conference_name = "devopsdays-tokyo";
+        const eventbrite_order_id = "8553493369";
         axios.get('https://www.eventbriteapi.com/v3/orders/'
         + eventbrite_order_id,
         { headers: {
