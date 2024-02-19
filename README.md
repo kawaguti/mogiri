@@ -6,7 +6,7 @@ Conference reception bot for Discord with Eventbrite
 
 ## Installation
 
-**Node.js 20 LTS is required.**  
+**Node.js 18 LTS is required.**  
 Ignore any warnings about unmet peer dependencies, as they're all optional.
 
 Please put these environment values on config.json file on root dir.
