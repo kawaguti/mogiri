@@ -21,7 +21,7 @@
     "@discordjs/rest": "^0.3.0",
     "axios": "^0.26.1",
     "discord-api-types": "^0.31.1",
-    "discord.js": "^13.6.0",
+    "discord.js": "^13.17.1",
     "dotenv": "^16.0.0",
     "node": "^16.14.2",
     "should": "^13.2.3"
