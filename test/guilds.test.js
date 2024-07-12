@@ -8,7 +8,7 @@ describe('guilds', function(){
         guilds["ScrumFestOsaka"].conferences.should.deepEqual([]);
     })
     it('should be ScrumFestOsaka has scrumfest-osaka command', function(){
-        guilds["ScrumFest2024"].conferences.should.deepEqual(["scrumfest-osaka", "scrumfest-kanazawa"]);
+        guilds["ScrumFest2024"].conferences.should.deepEqual(["scrumfest-osaka", "scrumfest-kanazawa", "scrumfest-sendai", "scrumfest-mikawa"]);
     })
     it('should be ScrumFestSapporo has scrumfest-sapporo command', function(){
         guilds["ScrumFestSapporo"].conferences.should.deepEqual(["scrum-fest-sapporo"]);
