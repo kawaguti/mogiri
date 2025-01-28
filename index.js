@@ -41,8 +41,9 @@ client.on('interactionCreate', async interaction => {
 		const ordernumber = interaction.options.getString('ordernumber');
 		const member = interaction.member;
 		const conference_name = commandName;
-		await interaction.reply(mogiri(client, interaction, 
-			ordernumber, member, conference_name));
+		const response = await mogiri(client, interaction, 
+			ordernumber, member, conference_name);
+		await interaction.reply(response);
 	}
 	
 });
