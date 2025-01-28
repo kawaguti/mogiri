@@ -2,15 +2,15 @@
 
 const should = require('should');
 const { conferences } = require('../config.json');
-const checkEventbriteOrder = require('../src/eventbrite.js');
+const checkPretixOrder = require('../src/pretix.js');
 
-describe('eventbrite', function() {
+describe('pretix', function() {
     // config.jsonに定義されているすべてのカンファレンスをテスト
     Object.entries(conferences).forEach(([conference_name, conference]) => {
-        // Eventbriteのカンファレンスのみテスト
-        if (conference.eventbrite_private_key && conference.ordernumber_for_test) {
+        // Pretixのカンファレンスのみテスト
+        if (conference.pretix_private_key && conference.ordernumber_for_test) {
             it(`should validate test order for ${conference_name}`, async function() {
-                const isValid = await checkEventbriteOrder(
+                const isValid = await checkPretixOrder(
                     conference.ordernumber_for_test,
                     conference
                 );
@@ -20,14 +20,14 @@ describe('eventbrite', function() {
     });
 
     it('should be invalid for non-existent order number', async function() {
-        // テスト用に最初に見つかったEventbriteカンファレンスを使用
-        const conference = Object.values(conferences).find(conf => conf.eventbrite_private_key);
+        // テスト用に最初に見つかったPretixカンファレンスを使用
+        const conference = Object.values(conferences).find(conf => conf.pretix_private_key);
         if (!conference) {
             this.skip();
             return;
         }
 
-        const isValid = await checkEventbriteOrder('INVALID123', conference);
+        const isValid = await checkPretixOrder('INVALID123', conference);
         isValid.should.be.false();
     });
 });

@@ -1,13 +1,14 @@
 'use strict';
 
 const { conferences } = require('../config.json');
-const axios = require('axios');
+const checkEventbriteOrder = require('./eventbrite.js');
+const checkPretixOrder = require('./pretix.js');
 
-module.exports = (client, interaction, conference_name ) => {
+module.exports = async (client, interaction, conference_name) => {
     const channelId = interaction.channelId;
     const channel = client.channels.cache.get(channelId);
 
-    channel.send("testing with conference : " + conference_name );
+    channel.send("testing with conference : " + conference_name);
 
     // check roles
     channel.send("check roles ..... ");
@@ -20,35 +21,35 @@ module.exports = (client, interaction, conference_name ) => {
     
     const has_role = interaction.member.roles.cache.some(role => role.name === conferences[conference_name].discord_role);
     if (has_role) {
-        channel.send( conferences[conference_name].discord_role + "のロールをお持ちでした！" );
+        channel.send(conferences[conference_name].discord_role + "のロールをお持ちでした！");
     } else {
-        channel.send( conferences[conference_name].discord_role + "のロールをお持ちではありませんでした！" );
+        channel.send(conferences[conference_name].discord_role + "のロールをお持ちではありませんでした！");
     }
 
-    // asking for eventbrite
-    channel.send("asking for eventbrite ..... ");
-    const eventbrite_order_id = conferences[conference_name].ordernumber_for_test;
-
-    axios.get('https://www.eventbriteapi.com/v3/orders/'
-            + eventbrite_order_id,
-            { headers: {
-                Authorization: `Bearer ${conferences[conference_name].eventbrite_private_key}`,
-                'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36'
-            }
-    })
-    .then(function (response) {
-        if (response.data.event_id == conferences[conference_name].eventbrite_event_id) {
-            // for this event
-            channel.send( eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
+    // チケットプラットフォームの判定とテスト
+    if (conferences[conference_name].pretix_private_key) {
+        // Pretixの場合
+        channel.send("asking for pretix ..... ");
+        const ordernumber = conferences[conference_name].ordernumber_for_test;
+        
+        const isValid = await checkPretixOrder(ordernumber, conferences[conference_name]);
+        if (isValid) {
+            channel.send(ordernumber + "は有効なPretixオーダー番号です。");
         } else {
-            // not for this event
-            channel.send( eventbrite_order_id + "は別のイベントのオーダー番号のようです。 https://www.eventbrite.com/e/" + response.data.event_id);
+            channel.send(ordernumber + "は有効なPretixオーダー番号ではありませんでした。");
         }
-    })
-    .catch(function (error) {
-        // invalid order id
-        channel.send( eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。");
-    })
+    } else {
+        // Eventbriteの場合
+        channel.send("asking for eventbrite ..... ");
+        const eventbrite_order_id = conferences[conference_name].ordernumber_for_test;
+        
+        const isValid = await checkEventbriteOrder(eventbrite_order_id, conferences[conference_name]);
+        if (isValid) {
+            channel.send(eventbrite_order_id + "は有効なEventbriteオーダー番号です。");
+        } else {
+            channel.send(eventbrite_order_id + "は有効なEventbriteオーダー番号ではありませんでした。");
+        }
+    }
 
     return "mogiri-check called!";
 }
