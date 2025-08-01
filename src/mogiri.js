@@ -12,7 +12,7 @@ module.exports = async (client, interaction, ordernumber, member, conference_nam
     const role = interaction.guild.roles.cache.find(role => role.name === conferences[conference_name].discord_role);
     if (!role) {
         // no suitable roles in this server
-        return conferences[conference_name].discord_role + "のロールがサーバー上に見つかりませんでした";
+        return conferences[conference_name].discord_role + "のロールがサーバー上に見つかりませんでした。チケット購入時のメールに記載されているサーバーにアクセスしてコマンドを試してください。";
     } else if (interaction.member.roles.cache.some(role => role.name === conferences[conference_name].discord_role)) {
         // already have the role
         return "すでに" + role.name + "のロールをお持ちでした！";
