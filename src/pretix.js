@@ -14,10 +14,19 @@ async function checkPretixOrder(orderId, conference) {
         );
 
         // オーダーが支払い済みで、キャンセルされていないことを確認
-        return response.data.status === 'p' && !response.data.cancellation_date;
+        const isValid = response.data.status === 'p' && !response.data.cancellation_date;
+
+        // チケット枚数を含めて返す
+        return {
+            isValid: isValid,
+            ticketCount: response.data.positions ? response.data.positions.length : 0
+        };
     } catch (error) {
         console.error('Pretix API error:', error.message);
-        return false;
+        return {
+            isValid: false,
+            ticketCount: 0
+        };
     }
 }
 

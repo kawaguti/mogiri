@@ -21,11 +21,44 @@ module.exports = async (client, interaction, ordernumber, member, conference_nam
     // チケットプラットフォームの判定
     if (conferences[conference_name].pretix_private_key) {
         // Pretixの場合
-        const isValid = await checkPretixOrder(ordernumber, conferences[conference_name]);
-        if (isValid) {
-            client.channels.cache.get(channelId).send(ordernumber + "は有効なPretixオーダー番号です。");
+        const result = await checkPretixOrder(ordernumber, conferences[conference_name]);
+
+        if (result.isValid) {
+            // 使用回数をカウント（キャッシュから）
+            let usageCount = 0;
+
+            // 現在のguildの設定を取得
+            const currentGuild = global.guilds ? Object.values(global.guilds).find(g => g.guildId === interaction.guildId) : null;
+
+            if (currentGuild && currentGuild.checkin_channel_id && global.checkinCache) {
+                const cache = global.checkinCache.get(currentGuild.checkin_channel_id);
+                if (cache) {
+                    // キャッシュから高速検索
+                    const searchKey1 = ordernumber + "は有効なPretixオーダー番号です。";
+                    const searchKey2 = ordernumber + "は有効なPretixオーダー番号です。 [" + conference_name + "]";
+
+                    usageCount = Array.from(cache).filter(content =>
+                        content.includes(searchKey1) || content.includes(searchKey2)
+                    ).length;
+                }
+            }
+
+            // メッセージにイベント名タグとチケット使用状況を追加
+            const ticketInfo = result.ticketCount > 0 ? ` (${usageCount + 1}/${result.ticketCount}枚目)` : '';
+            const message = ordernumber + "は有効なPretixオーダー番号です。 [" + conference_name + "]" + ticketInfo;
+
+            client.channels.cache.get(channelId).send(message);
             member.roles.add(role);
             client.channels.cache.get(channelId).send(role.name + "のロールをつけました！");
+
+            // 新しいメッセージをキャッシュに追加
+            if (currentGuild && currentGuild.checkin_channel_id && global.checkinCache) {
+                const cache = global.checkinCache.get(currentGuild.checkin_channel_id);
+                if (cache) {
+                    cache.add(message);
+                }
+            }
+
             return "Pretixでの認証が完了しました。";
         } else {
             client.channels.cache.get(channelId).send(ordernumber + "は有効なPretixオーダー番号ではありませんでした。");

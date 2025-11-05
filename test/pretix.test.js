@@ -10,11 +10,14 @@ describe('pretix', function() {
         // Pretixのカンファレンスのみテスト
         if (conference.pretix_private_key && conference.ordernumber_for_test) {
             it(`should validate test order for ${conference_name}`, async function() {
-                const isValid = await checkPretixOrder(
+                const result = await checkPretixOrder(
                     conference.ordernumber_for_test,
                     conference
                 );
-                isValid.should.be.true();
+                result.should.be.an.Object();
+                result.isValid.should.be.true();
+                result.ticketCount.should.be.a.Number();
+                result.ticketCount.should.be.aboveOrEqual(0);
             });
         }
     });
@@ -27,7 +30,9 @@ describe('pretix', function() {
             return;
         }
 
-        const isValid = await checkPretixOrder('INVALID123', conference);
-        isValid.should.be.false();
+        const result = await checkPretixOrder('INVALID123', conference);
+        result.should.be.an.Object();
+        result.isValid.should.be.false();
+        result.ticketCount.should.equal(0);
     });
 });

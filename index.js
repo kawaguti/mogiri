@@ -2,7 +2,7 @@
 
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
-const { token, mogiri_response, conferences } = require('./config.json');
+const { token, mogiri_response, conferences, guilds } = require('./config.json');
 const mogiri = require('./src/mogiri.js');
 const mogiri_check = require('./src/mogiri-check.js');
 
@@ -10,11 +10,72 @@ const conference_names = Object.keys(conferences);
 conference_names.map(name => console.log(name));
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+
+// チェックイン履歴のキャッシュ: channelId -> Set<メッセージ内容>
+const checkinCache = new Map();
+// キャッシュをエクスポートして mogiri.js からアクセス可能にする
+global.checkinCache = checkinCache;
+global.guilds = guilds;
+
+// 起動時にチェックインチャンネルのメッセージをキャッシュ
+async function cacheCheckinChannel(client, channelId, guildName) {
+    const channel = client.channels.cache.get(channelId);
+    if (!channel) {
+        console.log(`⚠️ チャンネルが見つかりません: ${guildName} (${channelId})`);
+        return;
+    }
+
+    const messageSet = new Set();
+    let lastMessageId = null;
+    let fetchCount = 0;
+    const maxFetch = 15; // 1500件まで
+
+    console.log(`キャッシュ構築中: ${guildName}...`);
+
+    while (fetchCount < maxFetch) {
+        try {
+            const options = { limit: 100 };
+            if (lastMessageId) options.before = lastMessageId;
+
+            const messages = await channel.messages.fetch(options);
+            if (messages.size === 0) break;
+
+            messages.forEach(msg => {
+                // "は有効なPretixオーダー番号です" を含むメッセージのみ
+                if (msg.content.includes("は有効なPretixオーダー番号です")) {
+                    messageSet.add(msg.content);
+                }
+            });
+
+            lastMessageId = messages.last().id;
+            fetchCount++;
+
+            // Discord APIレート制限対策: 少し待機
+            await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (error) {
+            console.error(`キャッシュ構築エラー (${guildName}):`, error.message);
+            break;
+        }
+    }
+
+    checkinCache.set(channelId, messageSet);
+    console.log(`✅ ${guildName}: ${messageSet.size}件のチェックイン履歴をキャッシュ`);
+}
 
 // When the client is ready, run this code (only once)
-client.once('ready', () => {
+client.once('ready', async () => {
 	console.log('Ready!');
+
+	// 各guildの受付チャンネルをキャッシュ
+	if (guilds) {
+		for (const [guildName, guildConfig] of Object.entries(guilds)) {
+			if (guildConfig.checkin_channel_id) {
+				await cacheCheckinChannel(client, guildConfig.checkin_channel_id, guildName);
+			}
+		}
+		console.log('✅ チェックインキャッシュ構築完了');
+	}
 });
 
 client.on('interactionCreate', async interaction => {
