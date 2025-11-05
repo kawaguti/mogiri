@@ -14,8 +14,11 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 
 // チェックイン履歴のキャッシュ: channelId -> Set<メッセージ内容>
 const checkinCache = new Map();
+// キャッシュメタデータ: channelId -> {oldestCheckin: {content, date, orderId}}
+const checkinCacheMetadata = new Map();
 // キャッシュをエクスポートして mogiri.js からアクセス可能にする
 global.checkinCache = checkinCache;
+global.checkinCacheMetadata = checkinCacheMetadata;
 global.guilds = guilds;
 
 // 起動時にチェックインチャンネルのメッセージをキャッシュ
@@ -29,6 +32,7 @@ async function cacheCheckinChannel(client, channelId, guildName) {
     const messageSet = new Set();
     let lastMessageId = null;
     let fetchCount = 0;
+    let oldestCheckinMessage = null;
     const maxFetch = 15; // 1500件まで
 
     console.log(`キャッシュ構築中: ${guildName}...`);
@@ -45,6 +49,8 @@ async function cacheCheckinChannel(client, channelId, guildName) {
                 // "は有効なPretixオーダー番号です" を含むメッセージのみ
                 if (msg.content.includes("は有効なPretixオーダー番号です")) {
                     messageSet.add(msg.content);
+                    // 最古のメッセージを記録（古い順に処理されるので、常に更新）
+                    oldestCheckinMessage = msg;
                 }
             });
 
@@ -60,6 +66,20 @@ async function cacheCheckinChannel(client, channelId, guildName) {
     }
 
     checkinCache.set(channelId, messageSet);
+
+    // メタデータを保存
+    if (oldestCheckinMessage) {
+        // 注文番号を抽出（最初のスペースの前）
+        const orderId = oldestCheckinMessage.content.split(' ')[0];
+        checkinCacheMetadata.set(channelId, {
+            oldestCheckin: {
+                content: oldestCheckinMessage.content,
+                date: oldestCheckinMessage.createdAt,
+                orderId: orderId
+            }
+        });
+    }
+
     console.log(`✅ ${guildName}: ${messageSet.size}件のチェックイン履歴をキャッシュ`);
 }
 

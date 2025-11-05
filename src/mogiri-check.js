@@ -21,9 +21,25 @@ module.exports = async (client, interaction, conference_name) => {
 
             if (guildConfig.checkin_channel_id) {
                 const cache = global.checkinCache ? global.checkinCache.get(guildConfig.checkin_channel_id) : null;
+                const metadata = global.checkinCacheMetadata ? global.checkinCacheMetadata.get(guildConfig.checkin_channel_id) : null;
+
                 if (cache) {
                     channel.send(`✅ キャッシュ: 有効 (${cache.size}件の履歴)`);
                     channel.send(`📍 チャンネルID: ${guildConfig.checkin_channel_id}`);
+
+                    // 最古のチェックイン情報を表示
+                    if (metadata && metadata.oldestCheckin) {
+                        const oldest = metadata.oldestCheckin;
+                        const dateStr = oldest.date.toLocaleString('ja-JP', {
+                            timeZone: 'Asia/Tokyo',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        channel.send(`🕐 最古のチェックイン: ${oldest.orderId} (${dateStr})`);
+                    }
                 } else {
                     channel.send(`⚠️ キャッシュ: 無効 (チャンネルが見つからないか、まだ構築されていません)`);
                 }
