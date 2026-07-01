@@ -2,16 +2,7 @@
 
 const axios = require('axios');
 
-// イベント単位で admission 属性を持つ item ID のセットをキャッシュ
-// key: `${base_url}|${organizer}|${event_slug}` -> Set<itemId>
-const admissionItemsCache = new Map();
-
 async function fetchAdmissionItemIds(conference) {
-    const cacheKey = `${conference.pretix_base_url}|${conference.pretix_organizer}|${conference.pretix_event_slug}`;
-    if (admissionItemsCache.has(cacheKey)) {
-        return admissionItemsCache.get(cacheKey);
-    }
-
     const admissionIds = new Set();
     let url = `${conference.pretix_base_url}/api/v1/organizers/${conference.pretix_organizer}/events/${conference.pretix_event_slug}/items/`;
 
@@ -27,7 +18,6 @@ async function fetchAdmissionItemIds(conference) {
         url = res.data.next || null;
     }
 
-    admissionItemsCache.set(cacheKey, admissionIds);
     return admissionIds;
 }
 
@@ -54,7 +44,9 @@ async function checkPretixOrder(orderId, conference) {
         return { isValid: false, ticketCount: 0, reason: 'not_paid_or_canceled' };
     }
 
-    // 入場券として扱う item ID を取得
+    // 入場券として扱う item ID を毎回取得する。
+    // 開催期間中に主催者が新しい入場券種別を追加した場合でも、キャッシュ由来の
+    // 誤判定（正当な購入者を no_admission で弾く）を避けるため、常に最新を参照する。
     let admissionItemIds;
     try {
         admissionItemIds = await fetchAdmissionItemIds(conference);
