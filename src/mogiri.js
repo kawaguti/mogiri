@@ -61,10 +61,6 @@ module.exports = async (client, interaction, ordernumber, member, conference_nam
 
             return "Pretixでの認証が完了しました。";
         } else {
-            if (result.reason === 'no_admission') {
-                client.channels.cache.get(channelId).send(ordernumber + "は入場券ではないため、参加者ロールを付与できません。");
-                return "このオーダー番号は入場券ではないため、Pretixでの認証に失敗しました。";
-            }
             client.channels.cache.get(channelId).send(ordernumber + "は有効なPretixオーダー番号ではありませんでした。");
             return "Pretixでの認証に失敗しました。";
         }
