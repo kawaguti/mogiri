@@ -1,38 +1,58 @@
 'use strict';
 
-const axios = require('axios');
+// Node.js 22 と Cloudflare Workers の両方で動くよう、axios ではなく fetch を使う。
+// サーバーレス版（serverless/）もこのモジュールをそのまま使い回している。
+
+// Pretix のオーダーコードは英数字のみ。URL に埋め込む前に形式を確認し、
+// "../" などで別のイベントのエンドポイントを参照されないようにする。
+const ORDER_CODE_PATTERN = /^[A-Za-z0-9]{1,32}$/;
+
+async function getJson(url, conference) {
+    const res = await fetch(url, {
+        headers: { Authorization: `Token ${conference.pretix_private_key}` },
+    });
+    if (!res.ok) {
+        const error = new Error(`HTTP ${res.status}`);
+        error.status = res.status;
+        throw error;
+    }
+    return res.json();
+}
+
+function eventUrl(conference) {
+    return `${conference.pretix_base_url}/api/v1/organizers/${encodeURIComponent(conference.pretix_organizer)}/events/${encodeURIComponent(conference.pretix_event_slug)}`;
+}
 
 async function fetchAdmissionItemIds(conference) {
     const admissionIds = new Set();
-    let url = `${conference.pretix_base_url}/api/v1/organizers/${conference.pretix_organizer}/events/${conference.pretix_event_slug}/items/`;
+    const origin = new URL(conference.pretix_base_url).origin;
+    let url = `${eventUrl(conference)}/items/`;
 
     while (url) {
-        const res = await axios.get(url, {
-            headers: { Authorization: `Token ${conference.pretix_private_key}` }
-        });
-        for (const item of res.data.results || []) {
+        // ページ送りの URL は API の応答から来るので、トークンを別のホストへ送らないよう確認する
+        if (new URL(url).origin !== origin) {
+            throw new Error('Pretix pagination URL points to another origin');
+        }
+        const data = await getJson(url, conference);
+        for (const item of data.results || []) {
             if (item.admission === true) {
                 admissionIds.add(item.id);
             }
         }
-        url = res.data.next || null;
+        url = data.next || null;
     }
 
     return admissionIds;
 }
 
 async function checkPretixOrder(orderId, conference) {
+    if (typeof orderId !== 'string' || !ORDER_CODE_PATTERN.test(orderId)) {
+        return { isValid: false, ticketCount: 0, reason: 'invalid_format' };
+    }
+
     let orderData;
     try {
-        const response = await axios.get(
-            `${conference.pretix_base_url}/api/v1/organizers/${conference.pretix_organizer}/events/${conference.pretix_event_slug}/orders/${orderId}/`,
-            {
-                headers: {
-                    Authorization: `Token ${conference.pretix_private_key}`,
-                }
-            }
-        );
-        orderData = response.data;
+        orderData = await getJson(`${eventUrl(conference)}/orders/${orderId}/`, conference);
     } catch (error) {
         console.error('Pretix API error (order):', error.message);
         return { isValid: false, ticketCount: 0, reason: 'api_error' };
@@ -69,7 +89,7 @@ async function checkPretixOrder(orderId, conference) {
     return {
         isValid: true,
         ticketCount: admissionPositions.length,
-        reason: null
+        reason: null,
     };
 }
 

@@ -1,0 +1,26 @@
+# このファイルを wrangler.toml にコピーして使う（wrangler.toml は .gitignore 済み）。
+# 秘密情報はここに書かず、npx wrangler secret put で設定する:
+#   DISCORD_BOT_TOKEN       Bot トークン
+#   PRETIX_KEY_xxx          Pretix の API トークン（/mogiri-admin add の key_secret に指定する名前）
+
+name = "mogiri-test"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mogiri-test"
+database_id = "<npx wrangler d1 create mogiri-test の出力>"
+
+[vars]
+# Discord Developer Portal > General Information > Public Key（公開鍵なので秘密ではない）
+DISCORD_PUBLIC_KEY = "<テスト用アプリの Public Key>"
+# /mogiri-admin を使える Discord ユーザー ID（カンマ区切り）
+ADMIN_USER_IDS = "<あなたの Discord ユーザー ID>"
+# /mogiri の返答
+MOGIRI_RESPONSE = "mogiri（サーバーレス版）です。/<カンファレンス名> ordernumber:<注文番号> で受付できます。"
+# Pretix の接続先として許可する URL（カンマ区切り）
+PRETIX_ALLOWED_ORIGINS = "https://pretix.eu"
+
+[observability]
+enabled = true
