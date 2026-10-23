@@ -35,6 +35,18 @@ export function withPretixKey(conference, env) {
     return { ...conference, pretix_private_key: key };
 }
 
+// 受付コマンドの試行回数の上限（既定: 10分に5回まで）。環境変数で変えられる
+export function attemptLimit(env) {
+    const toPositiveInt = (value, fallback) => {
+        const n = Number(value);
+        return Number.isInteger(n) && n > 0 ? n : fallback;
+    };
+    return {
+        maxAttempts: toPositiveInt(env.CHECKIN_MAX_ATTEMPTS, 5),
+        windowSeconds: toPositiveInt(env.CHECKIN_ATTEMPT_WINDOW_SECONDS, 600),
+    };
+}
+
 function isAdmin(interaction, env) {
     const ids = (env.ADMIN_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean);
     return ids.includes(interaction.member?.user?.id);
@@ -113,6 +125,14 @@ export async function runCheckin(interaction, { env, store, discord, checkPretix
     if (!conference.pretix_private_key) {
         console.error(`mogiri: secret ${conference.pretix_key_secret} is not set for ${conferenceName}`);
         return '設定に誤りがあり確認できませんでした。受付スタッフに声をかけてください。';
+    }
+
+    // 注文番号の総当たりで Pretix の API 制限を使い切られないよう、Pretix に問い合わせる前に回数を数える
+    const { maxAttempts, windowSeconds } = attemptLimit(env);
+    const attempts = await store.recordAttempt(userId, windowSeconds);
+    if (attempts > maxAttempts) {
+        console.warn(`mogiri: attempt limit exceeded by user ${userId} (${attempts}/${maxAttempts} in ${windowSeconds}s)`);
+        return `確認の回数が上限（${Math.round(windowSeconds / 60)}分間に${maxAttempts}回）に達しました。しばらく待ってから試すか、受付スタッフに声をかけてください。`;
     }
 
     // 受付チャンネルへの投稿には注文番号を書かない（番号は D1 にだけ残す）。

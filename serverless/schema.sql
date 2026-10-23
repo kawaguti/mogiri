@@ -29,3 +29,12 @@ CREATE TABLE IF NOT EXISTS checkins (
 );
 CREATE INDEX IF NOT EXISTS idx_checkins_order ON checkins (conference, order_number);
 CREATE INDEX IF NOT EXISTS idx_checkins_guild ON checkins (guild_id, created_at);
+
+-- 受付コマンドの試行の記録。注文番号の総当たりで Pretix の API 制限を使い切られないよう、
+-- ユーザーごとに一定時間内の試行回数を数える。古い行は記録のたびに消す。
+CREATE TABLE IF NOT EXISTS checkin_attempts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_checkin_attempts_user ON checkin_attempts (user_id, created_at);

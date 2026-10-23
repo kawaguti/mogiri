@@ -21,6 +21,9 @@ ADMIN_USER_IDS = "<あなたの Discord ユーザー ID>"
 MOGIRI_RESPONSE = "mogiri（サーバーレス版）です。/<カンファレンス名> ordernumber:<注文番号> で受付できます。"
 # Pretix の接続先として許可する URL（カンマ区切り）
 PRETIX_ALLOWED_ORIGINS = "https://pretix.eu"
+# 受付コマンドの試行回数の上限（ユーザーごと）。この秒数のあいだに、この回数まで
+CHECKIN_MAX_ATTEMPTS = "5"
+CHECKIN_ATTEMPT_WINDOW_SECONDS = "600"
 
 [observability]
 enabled = true

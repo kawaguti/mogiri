@@ -17,13 +17,14 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
 | 何枚目かの判定 | 起動時に受付チャンネルの過去1500件を読む | D1 の `checkins` テーブルで数える |
 | 受付チャンネルの投稿 | 注文番号を含む | **注文番号を含まない**（`@本人 のチェックインを確認し…[conf] (1/2枚目)`）。番号は D1 にだけ残る |
 | 本人への応答 | 全員に見える | 本人にだけ見える（ephemeral） |
+| 注文番号の総当たり対策 | なし | ユーザーごとに試行回数の上限（既定: 10分に5回。D1 の `checkin_attempts`） |
 | Eventbrite | 対応 | 非対応（Pretix のみ） |
 | ランタイム依存 | discord.js, axios など | なし（fetch と WebCrypto のみ。`src/pretix.js` を共用） |
 
 ### コマンド
 
 - `/mogiri` … 案内（`MOGIRI_RESPONSE`）を返す
-- `/<カンファレンス名> ordernumber:<注文番号>` … Pretix で注文を確認し、ロールを付ける
+- `/<カンファレンス名> ordernumber:<注文番号>` … Pretix で注文を確認し、ロールを付ける。Pretix に問い合わせる前に試行回数を数え、上限（`CHECKIN_MAX_ATTEMPTS` 回 / `CHECKIN_ATTEMPT_WINDOW_SECONDS` 秒。既定 5回 / 600秒）を超えたら Pretix を呼ばずに本人にだけ知らせる。上限に達したあとの試行も数えるので、試し続けるかぎり解除されない。すでにロールを持つ人の実行は数えない
 - `/mogiri-check` … ロールの有無・Secret の設定・テスト用注文番号での Pretix 確認・D1 の記録件数を表示（既定では管理者のみ表示）
 - `/mogiri-admin list | add | remove | sync` … カンファレンス設定の管理。`ADMIN_USER_IDS` に書いたユーザーだけが使える
 
@@ -149,6 +150,7 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
 - [ ] ロールを持ったまま再実行 … 「すでに…ロールをお持ちでした」
 - [ ] 存在しない注文番号 … 本人には失敗が、チャンネルには番号なしの失敗が出る
 - [ ] 入場券を含まない注文 … 「入場券ではない」
+- [ ] 存在しない注文番号を続けて6回 … 6回目は「確認の回数が上限…に達しました」になり、チャンネルには投稿されない
 - [ ] `ADMIN_USER_IDS` にないユーザーの `/mogiri-admin` … 拒否される
 - [ ] `/mogiri-admin remove name:rsgt2027` … `/rsgt2027` が消える
 - [ ] `npx wrangler tail` でエラーが出ていない

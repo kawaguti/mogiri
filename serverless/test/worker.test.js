@@ -1,4 +1,5 @@
 import should from 'should';
+import { attemptLimit } from '../src/handlers.js';
 import { createWorker } from '../src/index.js';
 import { createStore } from '../src/store.js';
 import {
@@ -23,6 +24,7 @@ const RSGT = {
 describe('serverless worker', function() {
     let signer;
     let env;
+    let d1;
     let store;
     let discord;
     let pretixCalls;
@@ -33,7 +35,8 @@ describe('serverless worker', function() {
     });
 
     beforeEach(async function() {
-        store = createStore(createTestD1());
+        d1 = createTestD1();
+        store = createStore(d1);
         await store.upsertConference(RSGT);
         discord = createFakeDiscord({ roles: [{ id: ROLE_ID, name: RSGT.discord_role }] });
         pretixCalls = [];
@@ -184,6 +187,52 @@ describe('serverless worker', function() {
                 console.error = originalError;
             }
             discord.edits()[0].should.startWith('エラーが発生しました');
+        });
+    });
+
+    describe('attempt limit', function() {
+        beforeEach(function() {
+            pretixResult = { isValid: false, ticketCount: 0, reason: 'api_error' };
+        });
+
+        it('stops calling Pretix after 5 attempts in 10 minutes by default', async function() {
+            for (let i = 0; i < 6; i++) await send(checkin({ order: `WRONG${i}` }));
+            pretixCalls.should.have.length(5);
+            discord.edits()[5].should.startWith('確認の回数が上限（10分間に5回）に達しました');
+            // 上限に達したことは本人にだけ伝え、チャンネルには投稿しない
+            discord.messages().should.have.length(5);
+        });
+
+        it('counts attempts per user', async function() {
+            env.CHECKIN_MAX_ATTEMPTS = '1';
+            await send(checkin());
+            await send(checkin());
+            await send(checkin({ userId: '777777777777777777' }));
+            pretixCalls.map(c => c.order).should.have.length(2);
+            discord.edits()[1].should.containEql('上限');
+            discord.edits()[2].should.not.containEql('上限');
+        });
+
+        it('forgets attempts older than the window', async function() {
+            env.CHECKIN_MAX_ATTEMPTS = '2';
+            d1.raw.prepare('INSERT INTO checkin_attempts (user_id, created_at) VALUES (?, ?)').run(USER_ID, '2000-01-01T00:00:00.000Z');
+            d1.raw.prepare('INSERT INTO checkin_attempts (user_id, created_at) VALUES (?, ?)').run(USER_ID, '2000-01-01T00:00:01.000Z');
+            await send(checkin());
+            pretixCalls.should.have.length(1);
+            // 古い記録は消えている
+            d1.raw.prepare('SELECT COUNT(*) AS n FROM checkin_attempts').get().n.should.equal(1);
+        });
+
+        it('does not count users who already have the role', async function() {
+            env.CHECKIN_MAX_ATTEMPTS = '1';
+            for (let i = 0; i < 3; i++) await send(checkin({ memberRoles: [ROLE_ID] }));
+            d1.raw.prepare('SELECT COUNT(*) AS n FROM checkin_attempts').get().n.should.equal(0);
+        });
+
+        it('falls back to defaults for invalid settings', function() {
+            attemptLimit({}).should.eql({ maxAttempts: 5, windowSeconds: 600 });
+            attemptLimit({ CHECKIN_MAX_ATTEMPTS: 'abc', CHECKIN_ATTEMPT_WINDOW_SECONDS: '-1' }).should.eql({ maxAttempts: 5, windowSeconds: 600 });
+            attemptLimit({ CHECKIN_MAX_ATTEMPTS: '3', CHECKIN_ATTEMPT_WINDOW_SECONDS: '300' }).should.eql({ maxAttempts: 3, windowSeconds: 300 });
         });
     });
 
