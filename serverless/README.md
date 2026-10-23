@@ -187,7 +187,13 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
    `/mogiri`、`/mogiri-check`、テスト用注文番号での受付、`/mogiri-admin sync`（コマンド登録を D1 の内容に揃える）。
 7. **問題があれば戻す**
    Interactions Endpoint URL を空にして保存すれば、すぐに Gateway 版（Azure）に戻る。Azure はしばらく止めずに残しておく。
-8. **Azure を止める**（数週間〜次のイベントまで問題がなければ）
-   - `.github/workflows/main_mogiri.yml` を無効化または削除する（main に push すると Azure にデプロイされるため）
+8. **Azure を止め、Gateway 版を片付ける**（数週間〜次のイベントまで問題がなければ）
    - Azure App Service `mogiri` を停止し、問題がなければ削除する
-   - GitHub の Secrets（`AZUREAPPSERVICE_PUBLISHPROFILE_...`、`SECRET_PASSPHRASE`）と `secrets/config.json.gpg` の扱いを決める
+   - 次をまとめて1つのコミットで削除する。**順番に注意**：ワークフローが残ったまま `secrets/` だけを消すと、main への push で Azure のデプロイが復号に失敗するので、必ず同じコミットで消す
+     - `.github/workflows/main_mogiri.yml`（Azure へのデプロイ）と `.github/scripts/decrypt_secret.sh`
+     - `secrets/config.json.gpg` と `secrets/util/`（config.json の暗号化・復号用）
+     - Gateway 版のコード: `index.js`、`deploy-commands.js`、`src/mogiri.js`、`src/mogiri-check.js`、`src/eventbrite.js`、`test/eventbrite.test.js`、`config.example.json`
+     - ルートの依存: `discord.js`、`@discordjs/builders`、`@discordjs/rest`、`discord-api-types`、`axios`（`src/pretix.js` と `src/orderid.js` は残す）
+   - 必要なら、サーバーレス版のテストを回す GitHub Actions を新しく作る（デプロイはしない、テストと `npm audit signatures` だけ）
+   - GitHub の Secrets（`AZUREAPPSERVICE_PUBLISHPROFILE_...`、`SECRET_PASSPHRASE`）を削除する
+   - **鍵を作り直す**：`secrets/config.json.gpg` はファイルを消しても公開リポジトリの履歴に残り続ける。暗号化されてはいるが、念のため、本番アプリの Bot トークンを Reset し、Pretix の API トークンも作り直して、新しい値を `npx wrangler secret put` で入れ直す。これで履歴に残った古い値は使えなくなる
