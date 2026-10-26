@@ -5,6 +5,9 @@ export const API_BASE = 'https://discord.com/api/v10';
 // 投稿内容には利用者の入力（注文番号など）が入るので、@everyone などのメンションは常に無効にする
 const NO_MENTIONS = { parse: [] };
 
+// Discord が応答しないときに Worker の持ち時間を使い切らないよう、1回の呼び出しを打ち切る時間
+const REQUEST_TIMEOUT_MS = 8000;
+
 export class DiscordApiError extends Error {
     constructor(method, path, status, body) {
         super(`Discord API ${method} ${path} failed: ${status} ${body}`);
@@ -24,6 +27,7 @@ export function createDiscordClient({ token, fetch = globalThis.fetch, sleep = m
                 method,
                 headers,
                 body: body === undefined ? undefined : JSON.stringify(body),
+                signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
             });
             if (res.status === 429 && attempt === 0) {
                 const data = await res.json().catch(() => ({}));

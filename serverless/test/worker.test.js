@@ -1,4 +1,5 @@
 import should from 'should';
+import { DiscordApiError } from '../src/discord.js';
 import { attemptLimit } from '../src/handlers.js';
 import { createWorker } from '../src/index.js';
 import { createStore } from '../src/store.js';
@@ -187,6 +188,85 @@ describe('serverless worker', function() {
                 console.error = originalError;
             }
             discord.edits()[0].should.startWith('エラーが発生しました');
+        });
+    });
+
+    describe('failures and timing', function() {
+        // console.error を黙らせてから実行する
+        async function quietly(fn) {
+            const originalError = console.error;
+            console.error = () => {};
+            try {
+                return await fn();
+            }
+            finally {
+                console.error = originalError;
+            }
+        }
+        const countCheckins = () => d1.raw.prepare('SELECT COUNT(*) AS n FROM checkins').get().n;
+
+        it('rejects a request without signature headers', async function() {
+            const request = new Request('https://x.example/', { method: 'POST', body: JSON.stringify({ type: 1 }) });
+            const res = await createWorker().fetch(request, env, createCtx());
+            res.status.should.equal(401);
+        });
+
+        it('answers an unknown command without calling Pretix', async function() {
+            await send(commandInteraction('no-such-conference', { options: [{ name: 'ordernumber', type: 3, value: ORDER }] }));
+            pretixCalls.should.have.length(0);
+            discord.edits()[0].should.containEql('受付中のカンファレンスではありません');
+        });
+
+        it('returns the deferred response before the slow work finishes (3 second rule)', async function() {
+            let release;
+            const gate = new Promise(resolve => {
+                release = resolve;
+            });
+            const worker = createWorker({
+                store,
+                discord,
+                checkPretixOrder: async () => {
+                    await gate;
+                    return { isValid: false, ticketCount: 0, reason: 'api_error' };
+                },
+            });
+            const ctx = createCtx();
+            const started = Date.now();
+            const res = await worker.fetch(await signer.signedRequest(checkin()), env, ctx);
+            (Date.now() - started).should.be.below(1000);
+            (await res.json()).type.should.equal(5);
+            discord.edits().should.have.length(0);
+            release();
+            await ctx.settle();
+            discord.edits().should.have.length(1);
+        });
+
+        it('does not record a check-in when the bot lacks permission to add the role', async function() {
+            discord.addMemberRole = async () => {
+                throw new DiscordApiError('PUT', '/roles', 403, 'Missing Permissions');
+            };
+            await quietly(() => send(checkin()));
+            countCheckins().should.equal(0);
+            discord.messages().should.have.length(0);
+            discord.edits()[0].should.containEql('ロールを付けられませんでした');
+        });
+
+        it('reports a generic error and records nothing when adding the role fails otherwise', async function() {
+            discord.addMemberRole = async () => {
+                throw new DiscordApiError('PUT', '/roles', 500, 'oops');
+            };
+            await quietly(() => send(checkin()));
+            countCheckins().should.equal(0);
+            discord.edits()[0].should.startWith('エラーが発生しました');
+        });
+
+        it('keeps working when sending the follow-up fails', async function() {
+            discord.editOriginalResponse = async () => {
+                throw new DiscordApiError('PATCH', '/webhooks', 404, 'Unknown Webhook');
+            };
+            const { status } = await quietly(() => send(checkin()));
+            status.should.equal(200);
+            countCheckins().should.equal(1);
         });
     });
 

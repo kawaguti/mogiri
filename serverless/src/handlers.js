@@ -3,6 +3,7 @@
 // work() で続きを行い、終わったら元の応答を書き換える。
 
 import { allowedPretixOrigins, DEFAULT_PRETIX_BASE_URL, guildCommands, validateConference } from './commands.js';
+import { DiscordApiError } from './discord.js';
 
 export const InteractionType = { PING: 1, APPLICATION_COMMAND: 2 };
 export const ResponseType = { PONG: 1, CHANNEL_MESSAGE: 4, DEFERRED_CHANNEL_MESSAGE: 5 };
@@ -140,9 +141,19 @@ export async function runCheckin(interaction, { env, store, discord, checkPretix
     const tag = ` [${conferenceName}]`;
     const result = await checkPretixOrder(ordernumber, conference);
     if (result.isValid) {
+        // ロールを付けられたときだけチェックインとして記録する（失敗した試行で枚数が増えないように）
+        try {
+            await discord.addMemberRole(guildId, userId, role.id);
+        }
+        catch (error) {
+            if (error instanceof DiscordApiError && error.status === 403) {
+                console.error(`mogiri: cannot add role ${role.name} in guild ${guildId}: ${error.message}`);
+                return '注文は確認できましたが、ロールを付けられませんでした（Bot の権限かロールの順番の問題です）。受付スタッフに声をかけてください。';
+            }
+            throw error;
+        }
         const usage = await store.recordCheckin({ guildId, conference: conferenceName, orderNumber: ordernumber, userId });
         const ticketInfo = result.ticketCount > 0 ? ` (${usage}/${result.ticketCount}枚目)` : '';
-        await discord.addMemberRole(guildId, userId, role.id);
         await discord.sendMessage(channelId, `<@${userId}> のチェックインを確認し、${role.name}のロールをつけました！${tag}${ticketInfo}`);
         return 'Pretixでの認証が完了しました。' + role.name + 'のロールをつけました！';
     }

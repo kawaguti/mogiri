@@ -86,6 +86,20 @@ describe('pretix (fetch based)', function() {
         (await checkPretixOrder('INVALID123', conference)).should.eql({ isValid: false, ticketCount: 0, reason: 'api_error' });
     });
 
+    it('treats a server error on the order as api_error', async function() {
+        stubFetch({ [`${BASE}/orders/AB12C/`]: 503 });
+        (await checkPretixOrder('AB12C', conference)).reason.should.equal('api_error');
+    });
+
+    it('treats a timeout as api_error and passes an abort signal', async function() {
+        globalThis.fetch = async (url, init) => {
+            requests.push({ url, init });
+            throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
+        };
+        (await checkPretixOrder('AB12C', conference)).reason.should.equal('api_error');
+        (requests[0].init.signal instanceof AbortSignal).should.be.true();
+    });
+
     it('falls back to counting all active positions when items cannot be read', async function() {
         stubFetch({ [`${BASE}/orders/AB12C/`]: order([{ item: 1 }, { item: 2, canceled: true }]), [`${BASE}/items/`]: 500 });
         (await checkPretixOrder('AB12C', conference)).should.eql({ isValid: true, ticketCount: 1, reason: null });

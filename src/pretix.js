@@ -7,9 +7,13 @@
 // "../" などで別のイベントのエンドポイントを参照されないようにする。
 const ORDER_CODE_PATTERN = /^[A-Za-z0-9]{1,32}$/;
 
+// Pretix が応答しないときに待ち続けないよう、1回の問い合わせを打ち切る時間
+const REQUEST_TIMEOUT_MS = 8000;
+
 async function getJson(url, conference) {
     const res = await fetch(url, {
         headers: { Authorization: `Token ${conference.pretix_private_key}` },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     if (!res.ok) {
         const error = new Error(`HTTP ${res.status}`);

@@ -1,5 +1,12 @@
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { parseCheckinMessage, toInsert } from '../scripts/import-checkins.mjs';
 import { convertConfig, secretNameFor } from '../scripts/import-config.mjs';
+import { createStore } from '../src/store.js';
+import { createTestD1 } from './helpers.js';
 
 describe('import-config', function() {
     const config = {
@@ -29,6 +36,22 @@ describe('import-config', function() {
         skipped[0].should.startWith('scrumfest-old');
     });
 
+    it('prints neither Pretix nor Eventbrite keys when run from the command line', function() {
+        const dir = mkdtempSync(join(tmpdir(), 'mogiri-import-config-'));
+        try {
+            const configPath = join(dir, 'config.json');
+            writeFileSync(configPath, JSON.stringify(config));
+            const script = fileURLToPath(new URL('../scripts/import-config.mjs', import.meta.url));
+            const output = execFileSync(process.execPath, [script, configPath], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+            output.should.containEql('INSERT OR REPLACE INTO conferences');
+            output.should.not.containEql('super-secret-pretix-key');
+            output.should.not.containEql('eb-secret');
+        }
+        finally {
+            rmSync(dir, { recursive: true, force: true });
+        }
+    });
+
     it('derives secret names from conference names', function() {
         secretNameFor('scrumfest-osaka-2027').should.equal('PRETIX_KEY_SCRUMFEST_OSAKA_2027');
     });
@@ -53,5 +76,28 @@ describe('import-checkins', function() {
     it('builds an idempotent insert keyed by message id', function() {
         toInsert({ id: '123', timestamp: '2027-01-08T00:00:00.000+00:00' }, '111', { order: 'AB12C', conference: 'rsgt2027' })
             .should.equal('INSERT OR IGNORE INTO checkins (guild_id, conference, order_number, message_id, created_at) VALUES (\'111\', \'rsgt2027\', \'AB12C\', \'123\', \'2027-01-08T00:00:00.000Z\');');
+    });
+});
+
+describe('import-checkins into D1', function() {
+    const guildId = '111111111111111111';
+    const messages = [
+        { id: '1001', timestamp: '2027-01-08T00:00:00.000+00:00', content: 'AB12Cは有効なPretixオーダー番号です。 [rsgt2027] (1/2枚目)' },
+        { id: '1002', timestamp: '2027-01-08T00:05:00.000+00:00', content: 'XY34Zは有効なPretixオーダー番号です。 [rsgt2027] (1/1枚目)' },
+    ];
+    const sqlFor = () => messages.map(m => toInsert(m, guildId, parseCheckinMessage(m.content))).join('\n');
+
+    it('can be applied twice without duplicating rows', function() {
+        const d1 = createTestD1();
+        d1.raw.exec(sqlFor());
+        d1.raw.exec(sqlFor());
+        d1.raw.prepare('SELECT COUNT(*) AS n FROM checkins').get().n.should.equal(2);
+    });
+
+    it('makes the next check-in of an imported order count as the second ticket', async function() {
+        const d1 = createTestD1();
+        d1.raw.exec(sqlFor());
+        const usage = await createStore(d1).recordCheckin({ guildId, conference: 'rsgt2027', orderNumber: 'AB12C', userId: '444444444444444444' });
+        usage.should.equal(2);
     });
 });
