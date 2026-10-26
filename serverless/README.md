@@ -48,7 +48,8 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
 - `schema.sql` … D1 のテーブル
 - `scripts/register-commands.mjs` … 最初に `/mogiri` `/mogiri-check` `/mogiri-admin` を登録する
 - `scripts/import-config.mjs` … 今の config.json から D1 用の SQL を作る（キーは出力しない）
-- `scripts/import-checkins.mjs` … 受付チャンネルの過去の記録を D1 用の SQL にする
+- `scripts/import-checkins.mjs` … 受付チャンネルの過去の記録を D1 用の SQL にする（何度実行しても重複しない）。`[カンファレンス名]` のない古い記録は `--conference` を付けたときだけ取り込むが、Gateway 版の `/mogiri-check` がテスト用注文番号で出した投稿も同じ文面なので、付けるときはテスト用注文番号の分が数に入ることに注意
+- `scripts/check-config.mjs` … config.json が移せるか、テスト用注文番号が形式チェックを通るかを、値を出さずに確かめる
 - `wrangler.example.toml` … 設定の雛形（`wrangler.toml` にコピーして使う。gitignore 済み）
 
 ## 依存とサプライチェーン対策
@@ -153,7 +154,18 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
 - [ ] 存在しない注文番号を続けて6回 … 6回目は「確認の回数が上限…に達しました」になり、チャンネルには投稿されない
 - [ ] `ADMIN_USER_IDS` にないユーザーの `/mogiri-admin` … 拒否される
 - [ ] `/mogiri-admin remove name:rsgt2027` … `/rsgt2027` が消える
+- [ ] Bot のロールを参加者ロールより下に移してから受付 … 「ロールを付けられませんでした」になり、チェックインとして数えられない（確認後、順番を戻す）
+- [ ] コールドスタート … 15分以上だれも使っていない状態で `/mogiri` と受付を実行し、「アプリケーションが応答しませんでした」にならない（`npx wrangler tail` を開いておくと時刻が分かる）
 - [ ] `npx wrangler tail` でエラーが出ていない
+
+### 5. 切り戻しの練習（テスト用アプリで一度だけ）
+
+本番で問題が出たときの戻し方（下の「本番への切り替え手順」の 7）を、テスト用アプリで試しておく。
+
+1. テスト用アプリの Interactions Endpoint URL を空にして保存する
+2. テスト用サーバーで `/mogiri` を実行し、「アプリケーションが応答しませんでした」になることを確かめる（コマンドが Worker に届かなくなった）
+   - Gateway 版まで含めて試すときは、テスト用アプリの Bot トークンと、テスト用サーバー・テスト用カンファレンスだけを書いた `config.json` を用意し、タグ `azure-gateway-last-good` のコードを手元で `node index.js` で起動する。`/mogiri` に Gateway 版が応答すれば、戻し方の確認になる
+3. Interactions Endpoint URL に Worker の URL を入れ直して保存し、`/mogiri` が再び応答することを確かめる
 
 ## 見込みの費用
 
@@ -174,6 +186,7 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
    `wrangler.toml` の `name` と `database_name` を本番用（例: `mogiri`）にし、`DISCORD_PUBLIC_KEY` を本番アプリのものに替える。
    `npx wrangler d1 create mogiri` → `schema.sql` を適用 → `npx wrangler secret put DISCORD_BOT_TOKEN`（本番の Bot トークン）→ `npx wrangler deploy`
 2. **カンファレンス設定を移す**
+   まず `node scripts/check-config.mjs ../config.json` で、全カンファレンスが移せるか・テスト用注文番号が形式チェックを通るかを確かめる（値は表示されない）。
    `node scripts/import-config.mjs ../config.json > conferences.sql` → `npx wrangler d1 execute mogiri --remote --file=conferences.sql`。
    表示された `PRETIX_KEY_...` を `npx wrangler secret put` で設定する（同じ organizer のトークンなら1つにまとめ、`/mogiri-admin add` で `key_secret` を付け替えてもよい）。
 3. **（任意）過去のチェックイン記録を移す**
@@ -185,15 +198,21 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
    Developer Portal で **本番アプリ** の Interactions Endpoint URL に本番 Worker の URL を設定する。この瞬間から、スラッシュコマンドは Worker に届く。
 6. **すぐに確認する**
    `/mogiri`、`/mogiri-check`、テスト用注文番号での受付、`/mogiri-admin sync`（コマンド登録を D1 の内容に揃える）。
-7. **問題があれば戻す**
-   Interactions Endpoint URL を空にして保存すれば、すぐに Gateway 版（Azure）に戻る。Azure はしばらく止めずに残しておく。
+7. **問題があれば戻す**（Azure の Gateway 版は予備として停止・凍結中。コードはタグ `azure-gateway-last-good`）
+   1. Azure Portal で App Service `mogiri` を **開始** する（または `az webapp start --resource-group <リソースグループ> --name mogiri`）。
+      Gateway 版が Discord に接続するまで1〜2分待つ（Bot がオンライン表示になる）。この間はまだ Worker が応答している
+   2. Developer Portal で **本番アプリ** の Interactions Endpoint URL を空にして保存する。この瞬間から、スラッシュコマンドは Gateway 版に届く
+      （先に URL を空にすると、Gateway 版が起動するまでの間コマンドがどこにも届かないので、この順番にする）
+   3. `/mogiri` と、テスト用注文番号での受付を確かめる
+   - 注意: Gateway 版は起動時に受付チャンネルの過去ログから「何枚目か」を数える。サーバーレス版の期間の投稿には注文番号が書かれていないので、その期間のチェックインは Gateway 版の枚数に数えられない（記録は D1 に残っている）
+   - Azure のコードが壊れていた場合は、GitHub Actions の "Build and deploy ..." を **タグ `azure-gateway-last-good` を選んで** 手動実行すれば、凍結した版を入れ直せる（main を選ばないこと）
 8. **Azure を止め、Gateway 版を片付ける**（数週間〜次のイベントまで問題がなければ）
-   - Azure App Service `mogiri` を停止し、問題がなければ削除する
+   - Azure App Service `mogiri`（停止中）を削除し、B1 の課金を止める
    - 次をまとめて1つのコミットで削除する。**順番に注意**：ワークフローが残ったまま `secrets/` だけを消すと、main への push で Azure のデプロイが復号に失敗するので、必ず同じコミットで消す
      - `.github/workflows/main_mogiri.yml`（Azure へのデプロイ）と `.github/scripts/decrypt_secret.sh`
      - `secrets/config.json.gpg` と `secrets/util/`（config.json の暗号化・復号用）
      - Gateway 版のコード: `index.js`、`deploy-commands.js`、`src/mogiri.js`、`src/mogiri-check.js`、`src/eventbrite.js`、`test/eventbrite.test.js`、`config.example.json`
-     - ルートの依存: `discord.js`、`@discordjs/builders`、`@discordjs/rest`、`discord-api-types`、`axios`（`src/pretix.js` と `src/orderid.js` は残す）
+     - ルートの依存: `discord.js`、`axios`（`src/pretix.js` と `src/orderid.js` は残す。`@discordjs/builders` などは `deploy-commands.js` の書き換えで外し済み）
    - 必要なら、サーバーレス版のテストを回す GitHub Actions を新しく作る（デプロイはしない、テストと `npm audit signatures` だけ）
-   - GitHub の Secrets（`AZUREAPPSERVICE_PUBLISHPROFILE_...`、`SECRET_PASSPHRASE`）を削除する
+   - GitHub の Secrets（`AZUREAPPSERVICE_PUBLISHPROFILE_...`、`SECRET_PASSPHRASE`）を削除する。タグ `azure-gateway-last-good` も不要になる
    - **鍵を作り直す**：`secrets/config.json.gpg` はファイルを消しても公開リポジトリの履歴に残り続ける。暗号化されてはいるが、念のため、本番アプリの Bot トークンを Reset し、Pretix の API トークンも作り直して、新しい値を `npx wrangler secret put` で入れ直す。これで履歴に残った古い値は使えなくなる
