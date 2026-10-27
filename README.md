@@ -1,12 +1,25 @@
 # mogiri
 
-Conference reception bot for Discord with Eventbrite
+Conference reception bot for Discord with Pretix (and Eventbrite)
 
 ## About
 
-## Installation
+Attendees run `/<conference> ordernumber:<order number>` in Discord. mogiri checks the order with the ticketing API and gives them the attendee role.
 
-**Node.js 18 LTS is required.**  
+There are two versions in this repository:
+
+| Version | Where | Status |
+|---|---|---|
+| Serverless (`serverless/`, Discord HTTP Interactions) | Cloudflare Workers + D1 | **Current production** since 2026-10-27. Pretix only. See [serverless/README.md](serverless/README.md) (Japanese) |
+| Gateway bot (`index.js`, discord.js) | Azure App Service (stopped), deployed only by running the workflow manually from the tag `azure-gateway-last-good` | Kept as a fallback until the migration is complete |
+
+**Adding a conference now happens in Discord with `/mogiri-admin add`.** Updating `secrets/config.json.gpg` and pushing to `main` no longer changes anything, and no error is shown. See [serverless/ADDING-CONFERENCES.md](serverless/ADDING-CONFERENCES.md) (Japanese).
+
+The instructions below are for the Gateway bot, which is used only when switching back.
+
+## Installation (Gateway bot)
+
+**Node.js 22 LTS or later is required.**  
 Ignore any warnings about unmet peer dependencies, as they're all optional.
 
 Please put these environment values on config.json file on root dir.
@@ -32,6 +45,13 @@ Rename config.example.json is a good start.
 }
 ```
 
+The example above is the original Eventbrite format. Current deployments mostly use Pretix and list servers under `guilds`:
+
+- Pretix conference: `pretix_base_url`, `pretix_organizer`, `pretix_event_slug`, `pretix_private_key`, `discord_role`, `ordernumber_for_test`
+- `guilds.<name>`: `guildId`, `conferences` (list of conference names), `checkin_channel_id` (reception channel used for counting check-ins)
+
+A conference with `pretix_private_key` is checked with Pretix; otherwise Eventbrite is used.
+
 To get your Eventbrite private key : <https://www.eventbrite.com/platform/api-keys>
 
 Event ID can be taken from your event management page URL, eid parameter 12-digits, <https://www.eventbrite.com/myevent?eid=123456789012>
@@ -54,7 +74,7 @@ $ node index.js
 
 in Powershell
 ```
-PS > $ node deploy-commands.js
+PS > node deploy-commands.js
 PS > node index.js
 ```
 
@@ -64,7 +84,10 @@ PS > node index.js
 You> /mogiri
 Bot> This is an example config.json file
 
-You> /scrumfest-osaka ordernumber: 1234567890
-Bot> @You, 1234567890は有効なEventbriteオーダー番号です。
-Bot> @You, XXXのロールをつけました！
+You> /rsgt2027 ordernumber: ABC12
+Bot> ABC12は有効なPretixオーダー番号です。 [rsgt2027] (1/1枚目)
+Bot> RSGT2027参加者のロールをつけました！
+Bot> Pretixでの認証が完了しました。
 ```
+
+The serverless version no longer posts the order number to the channel and replies to the attendee privately.

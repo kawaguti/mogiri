@@ -3,10 +3,11 @@
 
 name: Build and deploy Node.js app to Azure Web App - mogiri
 
+# Azure の Gateway 版は、サーバーレス版への移行が終わるまで予備として凍結している（Node 18-lts）。
+# main への push で予備が上書きされないよう、自動デプロイはしない。
+# 予備を入れ直すときは、Actions の "Run workflow" でタグ azure-gateway-last-good を選んで実行する
+# （main を選ぶと、Node 22 前提の今のコードがデプロイされてしまう）。
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -19,7 +20,7 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v4
         with:
-          node-version: '18.x'
+          node-version: '22.x'
 
       - name: Decrypt secret
         run: /bin/sh ./.github/scripts/decrypt_secret.sh
@@ -28,7 +29,8 @@ jobs:
 
       - name: npm install, build, and test
         run: |
-          npm install
+          npm ci --ignore-scripts
+          npm audit signatures
           npm run build --if-present
           npm run test --if-present
 

@@ -1,0 +1,20 @@
+{
+  "name": "mogiri-serverless",
+  "private": true,
+  "type": "module",
+  "description": "mogiri on Cloudflare Workers (Discord HTTP Interactions)",
+  "scripts": {
+    "test": "cd .. && npm run test:serverless",
+    "dev": "wrangler dev",
+    "build:check": "wrangler deploy --dry-run --outdir dist"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.0"
+  },
+  "overrides": {
+    "undici": "7.30.1"
+  }
+}
