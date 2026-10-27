@@ -4,6 +4,7 @@ config.json
 config_*.json
 .vscode
 serverless/wrangler.toml
+serverless/wrangler.production.toml
 serverless/.dev.vars
 serverless/.wrangler
 serverless/dist

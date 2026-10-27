@@ -4,6 +4,9 @@
 #   PRETIX_KEY_xxx          Pretix の API トークン（/mogiri-admin add の key_secret に指定する名前）
 
 name = "mogiri-test"
+# どの Cloudflare アカウントにデプロイするか。本番用の wrangler.production.toml では必ず書く
+# （書かないと、ログイン中のユーザーが使えるアカウントから選ばれ、別のアカウントに作ってしまうことがある）
+# account_id = "<Cloudflare のアカウント ID>"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 

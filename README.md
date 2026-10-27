@@ -10,7 +10,7 @@ There are two versions in this repository:
 
 | Version | Where | Status |
 |---|---|---|
-| Gateway bot (`index.js`, discord.js) | Azure App Service, deployed on push to `main` | **Current production** |
+| Gateway bot (`index.js`, discord.js) | Azure App Service, deployed only by running the workflow manually (no deploy on push) | **Current production** |
 | Serverless (`serverless/`, Discord HTTP Interactions) | Cloudflare Workers + D1 | Prototype, Pretix only. See [serverless/README.md](serverless/README.md) (Japanese) |
 
 The serverless version is planned to replace the Gateway bot outside event periods. Until then, the instructions below are for the Gateway bot.
