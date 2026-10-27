@@ -160,15 +160,26 @@ export async function runCheckin(interaction, { env, store, discord, checkPretix
         }
         const usage = await store.recordCheckin({ guildId, conference: conferenceName, orderNumber: ordernumber, userId });
         const ticketInfo = result.ticketCount > 0 ? ` (${usage}/${result.ticketCount}枚目)` : '';
-        await discord.sendMessage(channelId, `<@${userId}> のチェックインを確認し、${role.name}のロールをつけました！${tag}${ticketInfo}`);
+        await postRecord(discord, channelId, `<@${userId}> のチェックインを確認し、${role.name}のロールをつけました！${tag}${ticketInfo}`);
         return 'Pretixでの認証が完了しました。' + role.name + 'のロールをつけました！';
     }
     if (result.reason === 'no_admission') {
-        await discord.sendMessage(channelId, `<@${userId}> の注文は入場券ではないため、参加者ロールを付与できませんでした。${tag}`);
+        await postRecord(discord, channelId, `<@${userId}> の注文は入場券ではないため、参加者ロールを付与できませんでした。${tag}`);
         return 'このオーダー番号は入場券ではないため、Pretixでの認証に失敗しました。';
     }
-    await discord.sendMessage(channelId, `<@${userId}> の注文番号を確認できませんでした。${tag}`);
+    await postRecord(discord, channelId, `<@${userId}> の注文番号を確認できませんでした。${tag}`);
     return displayInput(ordernumber) + 'は有効なPretixオーダー番号ではありませんでした。番号を確かめてもう一度試してください。';
+}
+
+// 受付チャンネルへの投稿はスタッフ向けの記録なので、失敗しても本人への結果は変えない。
+// Discord の応答が遅く、投稿はできたのにタイムアウトになることもある（その場合も本人には「完了」と出す）。
+async function postRecord(discord, channelId, content) {
+    try {
+        await discord.sendMessage(channelId, content);
+    }
+    catch (error) {
+        console.error(`mogiri: failed to post the check-in record to channel ${channelId}: ${error.name}: ${error.message}`);
+    }
 }
 
 export async function runMogiriCheck(interaction, { env, store, discord, checkPretixOrder }) {

@@ -278,6 +278,26 @@ describe('serverless worker', function() {
             status.should.equal(200);
             countCheckins().should.equal(1);
         });
+
+        it('still tells the attendee the check-in succeeded when posting the record times out', async function() {
+            // 本番で、投稿は届いたのに Discord の応答が8秒を超えてタイムアウトしたことがある
+            discord.sendMessage = async () => {
+                throw new DOMException('The operation was aborted due to timeout', 'TimeoutError');
+            };
+            await quietly(() => send(checkin()));
+            countCheckins().should.equal(1);
+            discord.calls.should.containEql(['addMemberRole', GUILD_ID, USER_ID, ROLE_ID]);
+            discord.edits()[0].should.startWith('Pretixでの認証が完了しました。');
+        });
+
+        it('still tells the attendee about an invalid order when posting the record fails', async function() {
+            pretixResult = { isValid: false, ticketCount: 0, reason: 'api_error' };
+            discord.sendMessage = async () => {
+                throw new DiscordApiError('POST', '/messages', 403, 'Missing Access');
+            };
+            await quietly(() => send(checkin()));
+            discord.edits()[0].should.containEql('有効なPretixオーダー番号ではありませんでした');
+        });
     });
 
     describe('attempt limit', function() {
