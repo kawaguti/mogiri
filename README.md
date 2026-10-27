@@ -10,10 +10,12 @@ There are two versions in this repository:
 
 | Version | Where | Status |
 |---|---|---|
-| Gateway bot (`index.js`, discord.js) | Azure App Service, deployed only by running the workflow manually (no deploy on push) | **Current production** |
-| Serverless (`serverless/`, Discord HTTP Interactions) | Cloudflare Workers + D1 | Prototype, Pretix only. See [serverless/README.md](serverless/README.md) (Japanese) |
+| Serverless (`serverless/`, Discord HTTP Interactions) | Cloudflare Workers + D1 | **Current production** since 2026-10-27. Pretix only. See [serverless/README.md](serverless/README.md) (Japanese) |
+| Gateway bot (`index.js`, discord.js) | Azure App Service (stopped), deployed only by running the workflow manually from the tag `azure-gateway-last-good` | Kept as a fallback until the migration is complete |
 
-The serverless version is planned to replace the Gateway bot outside event periods. Until then, the instructions below are for the Gateway bot.
+**Adding a conference now happens in Discord with `/mogiri-admin add`.** Updating `secrets/config.json.gpg` and pushing to `main` no longer changes anything, and no error is shown. See [serverless/ADDING-CONFERENCES.md](serverless/ADDING-CONFERENCES.md) (Japanese).
+
+The instructions below are for the Gateway bot, which is used only when switching back.
 
 ## Installation (Gateway bot)
 

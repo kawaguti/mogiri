@@ -3,9 +3,19 @@
 Discord の **HTTP Interactions**（Interactions Endpoint URL）でスラッシュコマンドを受ける mogiri です。
 Gateway（WebSocket の常時接続）を使わないので、常時起動のサーバーが要りません。
 
-> ⚠️ **本番の Discord アプリケーションの Interactions Endpoint URL は、切り替えの日まで絶対に設定しないこと。**
-> 設定した瞬間からスラッシュコマンドが HTTP に届くようになり、Azure で動いている Gateway 版が応答しなくなります。
-> 開発と動作確認は、必ず別のテスト用 Discord アプリケーションで行ってください。
+## いまの状態（2026-10-27 に本番を切り替え済み）
+
+| | 本番 | テスト |
+|---|---|---|
+| Discord アプリ | **mogiri（Application ID `961867459093225502`）** | mogiri-test |
+| Worker / D1 | `mogiri`（`--config wrangler.production.toml`） | `mogiri-test`（`wrangler.toml`） |
+| Cloudflare アカウント | 管理担当の個人アカウント（団体アカウントができたら移す） | 同じ個人アカウント |
+
+- Developer Portal には「mogiri」という名前のアプリが **2つ** ある。本番は Application ID `961867459093225502` のほう（サーバーに入っているのもこちら）。もう一方には Interactions Endpoint URL を設定しないこと
+- 切り戻し先の Gateway 版（Azure）は停止中。イベントの前日か当日に起動しておけば、本番アプリの Interactions Endpoint URL を空にするだけで戻せる（下の切り替え手順の 7）
+- カンファレンスの追加は [ADDING-CONFERENCES.md](ADDING-CONFERENCES.md)
+
+> ⚠️ 開発と動作確認は、必ずテスト用アプリ（mogiri-test）で行うこと。本番アプリの Interactions Endpoint URL を変えると、その瞬間から本番の受付の行き先が変わる。
 
 ## 何が変わるか（Gateway 版との違い）
 
