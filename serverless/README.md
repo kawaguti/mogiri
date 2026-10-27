@@ -180,8 +180,12 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
 
 ## 本番用の Cloudflare アカウント（団体アカウント）
 
-本番の Worker と D1 は、個人のアカウントではなく **団体のメールアドレスを持ち主にした Cloudflare アカウント** に置く。
+本番の Worker と D1 は、最終的には **団体のメールアドレスを持ち主にした Cloudflare アカウント** に置く。
 テスト用の `mogiri-test` は、これまでどおり個人のアカウントに置いたままにする。
+
+> 団体アカウントが用意できるまでは、本番も管理担当の個人アカウントに置き、運営メンバーをそのアカウントのメンバーに追加して運用する。
+> その間も `wrangler.production.toml` に（個人アカウントの）`account_id` を書き、`--config` で `mogiri-test` と分けて操作する。
+> 団体アカウントに移すときは、新しいアカウントに Worker と D1 を作り直し、`wrangler d1 export` で D1 の中身を移し、Secret を入れ直し、本番アプリの Interactions Endpoint URL を新しい URL に替える。
 
 ### アカウントとメンバー
 
