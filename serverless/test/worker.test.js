@@ -1,6 +1,6 @@
 import should from 'should';
 import { DiscordApiError } from '../src/discord.js';
-import { attemptLimit } from '../src/handlers.js';
+import { attemptLimit, normalizeOrderNumber } from '../src/handlers.js';
 import { createWorker } from '../src/index.js';
 import { createStore } from '../src/store.js';
 import {
@@ -133,6 +133,16 @@ describe('serverless worker', function() {
             const messages = discord.messages();
             messages[1].should.endWith('(2/2枚目)');
             messages[2].should.endWith('(3/2枚目)');
+        });
+
+        it('accepts full-width, lowercase and #-prefixed order numbers as the same order', async function() {
+            const variants = ['ＡＢＣ１２', 'abc12', '#ABC12', ' ＃abc12 '];
+            for (const [i, order] of variants.entries()) {
+                await send(checkin({ order, userId: `77777777777777777${i}` }));
+            }
+            pretixCalls.map(c => c.order).should.eql(['ABC12', 'ABC12', 'ABC12', 'ABC12']);
+            // 入力の書き方が違っても同じ注文として数える
+            discord.messages()[3].should.endWith('(4/2枚目)');
         });
 
         it('does not call Pretix when the member already has the role', async function() {
@@ -325,6 +335,22 @@ describe('serverless worker', function() {
             attemptLimit({}).should.eql({ maxAttempts: 5, windowSeconds: 600 });
             attemptLimit({ CHECKIN_MAX_ATTEMPTS: 'abc', CHECKIN_ATTEMPT_WINDOW_SECONDS: '-1' }).should.eql({ maxAttempts: 5, windowSeconds: 600 });
             attemptLimit({ CHECKIN_MAX_ATTEMPTS: '3', CHECKIN_ATTEMPT_WINDOW_SECONDS: '300' }).should.eql({ maxAttempts: 3, windowSeconds: 300 });
+        });
+    });
+
+    describe('normalizeOrderNumber', function() {
+        it('turns full-width, lowercase, # and surrounding spaces into the Pretix form', function() {
+            normalizeOrderNumber('ＺＬ７ＵＷ').should.equal('ZL7UW');
+            normalizeOrderNumber('zl7uw').should.equal('ZL7UW');
+            normalizeOrderNumber('#ZL7UW').should.equal('ZL7UW');
+            normalizeOrderNumber('＃ ｚｌ７ｕｗ').should.equal('ZL7UW');
+            normalizeOrderNumber('　ZL7UW　').should.equal('ZL7UW');
+            normalizeOrderNumber(undefined).should.equal('');
+        });
+
+        it('leaves other mistakes for the order code check to reject', function() {
+            normalizeOrderNumber('ZL7UW.').should.equal('ZL7UW.');
+            normalizeOrderNumber('ZL 7UW').should.equal('ZL 7UW');
         });
     });
 

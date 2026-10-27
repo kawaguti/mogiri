@@ -23,6 +23,13 @@ function displayInput(value) {
     return s.length > 64 ? s.slice(0, 64) + '…' : s;
 }
 
+// 参加者が入力した注文番号を Pretix の形（半角英大文字と数字）に寄せる。
+// 日本語入力のままの全角（ＺＬ７ＵＷ）、小文字、メールからコピーした先頭の # や前後の空白を許す。
+// Pretix の注文番号は大文字なので、大文字にしても別の注文と取り違えることはない。
+export function normalizeOrderNumber(value) {
+    return String(value ?? '').normalize('NFKC').trim().replace(/^#+\s*/, '').toUpperCase();
+}
+
 function formatJst(iso) {
     const d = new Date(new Date(iso).getTime() + 9 * 60 * 60 * 1000);
     const p = n => String(n).padStart(2, '0');
@@ -103,7 +110,7 @@ export async function runCheckin(interaction, { env, store, discord, checkPretix
     const guildId = interaction.guild_id;
     const channelId = interaction.channel_id ?? interaction.channel?.id;
     const userId = interaction.member.user.id;
-    const ordernumber = String(getOption(interaction.data.options, 'ordernumber') ?? '').trim();
+    const ordernumber = normalizeOrderNumber(getOption(interaction.data.options, 'ordernumber'));
 
     const row = await store.getConference(conferenceName);
     if (!row || row.guild_id !== guildId) {
