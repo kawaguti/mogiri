@@ -130,9 +130,8 @@ export async function runCheckin(interaction, { env, store, discord, checkPretix
 
     // 注文番号の総当たりで Pretix の API 制限を使い切られないよう、Pretix に問い合わせる前に回数を数える
     const { maxAttempts, windowSeconds } = attemptLimit(env);
-    const attempts = await store.recordAttempt(userId, windowSeconds);
-    if (attempts > maxAttempts) {
-        console.warn(`mogiri: attempt limit exceeded by user ${userId} (${attempts}/${maxAttempts} in ${windowSeconds}s)`);
+    if (!await store.recordAttempt(userId, windowSeconds, maxAttempts)) {
+        console.warn(`mogiri: attempt limit exceeded by user ${userId} (${maxAttempts} in ${windowSeconds}s)`);
         return `確認の回数が上限（${Math.round(windowSeconds / 60)}分間に${maxAttempts}回）に達しました。しばらく待ってから試すか、受付スタッフに声をかけてください。`;
     }
 

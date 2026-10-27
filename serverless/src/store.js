@@ -41,17 +41,19 @@ export function createStore(db) {
             return counted.results[0].n;
         },
 
-        // 受付の試行を記録し、直近 windowSeconds 秒の試行回数（今回を含む）を返す。
+        // 直近 windowSeconds 秒の試行が maxAttempts 回未満なら今回の試行を記録して true を返す。
+        // 上限に達していれば記録せずに false を返す（止められた試行で待ち時間が延びないように）。
         // そのユーザーの古い記録はここで消すので、テーブルは大きくならない。
-        async recordAttempt(userId, windowSeconds) {
+        async recordAttempt(userId, windowSeconds, maxAttempts) {
             const since = `-${windowSeconds} seconds`;
-            const [, , counted] = await db.batch([
+            const [, inserted] = await db.batch([
                 db.prepare(`DELETE FROM checkin_attempts WHERE user_id = ?1 AND created_at < strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?2)`)
                     .bind(userId, since),
-                db.prepare('INSERT INTO checkin_attempts (user_id) VALUES (?1)').bind(userId),
-                db.prepare('SELECT COUNT(*) AS n FROM checkin_attempts WHERE user_id = ?1').bind(userId),
+                db.prepare(`INSERT INTO checkin_attempts (user_id)
+                    SELECT ?1 WHERE (SELECT COUNT(*) FROM checkin_attempts WHERE user_id = ?1) < ?2`)
+                    .bind(userId, maxAttempts),
             ]);
-            return counted.results[0].n;
+            return inserted.meta.changes > 0;
         },
 
         checkinStats: guildId =>

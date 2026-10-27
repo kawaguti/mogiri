@@ -303,6 +303,18 @@ describe('serverless worker', function() {
             d1.raw.prepare('SELECT COUNT(*) AS n FROM checkin_attempts').get().n.should.equal(1);
         });
 
+        it('does not record attempts that were stopped by the limit', async function() {
+            env.CHECKIN_MAX_ATTEMPTS = '2';
+            for (let i = 0; i < 5; i++) await send(checkin({ order: `WRONG${i}` }));
+            pretixCalls.should.have.length(2);
+            // 止められた3回は数えないので、待ち時間は最初の2回の時刻だけで決まる
+            d1.raw.prepare('SELECT COUNT(*) AS n FROM checkin_attempts').get().n.should.equal(2);
+            // 最初の2回が窓の外に出れば、また試せる
+            d1.raw.prepare(`UPDATE checkin_attempts SET created_at = '2000-01-01T00:00:00.000Z'`).run();
+            await send(checkin({ order: 'WRONG5' }));
+            pretixCalls.should.have.length(3);
+        });
+
         it('does not count users who already have the role', async function() {
             env.CHECKIN_MAX_ATTEMPTS = '1';
             for (let i = 0; i < 3; i++) await send(checkin({ memberRoles: [ROLE_ID] }));
