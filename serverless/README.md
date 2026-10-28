@@ -79,6 +79,18 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
 - D1 は `database_name` だけで探す。**同じ名前の D1 がそのアカウントに見つからないと、`wrangler deploy` は空の D1 を黙って作る**。アカウントを取り違えると空の受付記録で動き出すので、デプロイは必ず `npm run deploy`（テスト用）/ `npm run deploy:production`（本番）で行う。`CLOUDFLARE_ACCOUNT_ID` がないと止まる
 - Secret（`DISCORD_PUBLIC_KEY` と `ADMIN_USER_IDS` を含む）はデプロイで上書きされない。ダッシュボードで「変数」（平文）として足した値は、次のデプロイで消える
 - Secret の値はダッシュボードでも読めない。今の値を確かめたいときは、入れ直す
+- `serverless/.env` には `CLOUDFLARE_ACCOUNT_ID` だけを書く（API トークンなどは書かない）。`.dev.vars` がないと、`wrangler dev` は `.env` の中身を手元の Worker の Secret として読み込む。`wrangler dev` で使う値は `.dev.vars` に書く
+
+### 古い形（vars と wrangler.production.toml）から移す（2026-10 に一度だけ）
+
+以前は `DISCORD_PUBLIC_KEY` と `ADMIN_USER_IDS` を `[vars]`（平文の変数）で入れていた。新しい `wrangler.toml` でそのままデプロイすると、この2つが消えて、Secret を入れるまで全リクエストが 401 になり受付が止まる。
+デプロイと同時に Secret を入れる（`--secrets-file`。同じ版に入るので、止まる時間がない）。
+
+1. 2つの値を書いた JSON ファイルを **リポジトリの外** に作る（`{"DISCORD_PUBLIC_KEY": "...", "ADMIN_USER_IDS": "...,..."}`）。値を画面やチャットに出さない
+2. `npm run deploy -- --secrets-file <そのファイル>`（本番は `npm run deploy:production -- --secrets-file <そのファイル>`）
+3. すぐにファイルを消す
+4. `npx wrangler secret list`（本番は `--env production`）に2つが出ること、Discord で `/mogiri` が応答し `/mogiri-admin list` が使えることを確かめる
+5. テスト用 → 本番の順に行う。本番が終わったら、手元の `serverless/wrangler.production.toml` を消し、`.gitignore` の `serverless/wrangler.production.toml` の行も消す
 
 ## 依存とサプライチェーン対策
 
