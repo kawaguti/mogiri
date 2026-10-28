@@ -5,7 +5,7 @@
 // 使い方（PowerShell）:
 //   $env:DISCORD_BOT_TOKEN = "..."
 //   node scripts/import-checkins.mjs <guildId> <channelId> [--max 1500] [--conference <タグなしの記録に使う名前>] > checkins.sql
-//   npx wrangler d1 execute mogiri --remote --file=checkins.sql
+//   npx wrangler d1 execute mogiri --remote --env production --file=checkins.sql
 
 import { pathToFileURL } from 'node:url';
 import { API_BASE, createDiscordClient } from '../src/discord.js';

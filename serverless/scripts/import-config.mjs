@@ -3,8 +3,8 @@
 //
 // 使い方:
 //   node scripts/import-config.mjs ../config.json > conferences.sql
-//   npx wrangler d1 execute mogiri --remote --file=conferences.sql
-//   （表示された Secret を npx wrangler secret put PRETIX_KEY_... で設定）
+//   npx wrangler d1 execute mogiri --remote --env production --file=conferences.sql
+//   （表示された Secret を npx wrangler secret put PRETIX_KEY_... --env production で設定）
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -65,6 +65,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     for (const s of skipped) console.error(`skipped ${s}`);
     if (secrets.length) {
         console.error('\n次の Secret を設定してください（値は config.json の pretix_private_key）:');
-        for (const s of secrets) console.error(`  npx wrangler secret put ${s}`);
+        for (const s of secrets) console.error(`  npx wrangler secret put ${s} --env production`);
     }
 }

@@ -20,11 +20,11 @@
   - 同じ organizer のトークンがもう Secret に入っていれば、それを使い回せる（`/mogiri-admin list` の Secret 名を見る）
 - テスト用の注文番号（`/mogiri-check` で使う。入場券を含む、支払い済みの注文）
 - Discord で `/mogiri-admin` を使える権限。次の2つがそろっている必要がある
-  - Worker の設定 `ADMIN_USER_IDS` に自分の Discord ユーザー ID が入っていること（管理担当に頼む）
+  - Worker の Secret `ADMIN_USER_IDS` に自分の Discord ユーザー ID が入っていること（管理担当に頼む）
   - そのサーバーで `/mogiri-admin` が見えること。`/mogiri-check` と `/mogiri-admin` は、既定ではサーバーの「管理者」権限を持つ人にしか表示されない。管理者でないときは、サーバー設定 > 連携サービス > **mogiri** で、自分（または運営スタッフのロール）にこの2つのコマンドを許可してもらう
 - 新しいトークンを入れるときだけ:
   - 本番の Worker がある Cloudflare アカウントのメンバーであること（管理担当に招待してもらう）
-  - 手元に mogiri のリポジトリと `serverless/wrangler.production.toml`。このファイルは Git に入っていないので、**管理担当から受け取る**（中身はアカウント ID・D1 の ID・Public Key など公開してよい値だけで、トークンは入っていない）。作り方は [README.md](README.md) の「本番用の Cloudflare アカウント」
+  - 手元に mogiri のリポジトリ（main）と、`serverless/.env` に `CLOUDFLARE_ACCOUNT_ID=<本番のアカウント ID>` と書いたファイル。アカウント ID は、招待されたあとに `npx wrangler whoami` で表示される（Git に入れない。人から受け取るファイルはない）
 
 > 💡 Developer Portal には「mogiri」という名前のアプリが2つあります。本番は **Application ID `961867459093225502`** のほうです。Developer Portal で何かを確かめるときは、この ID を見てから操作してください。
 
@@ -42,10 +42,11 @@
 ```bash
 cd serverless
 npx wrangler whoami
-npx wrangler secret put PRETIX_KEY_SAPPORO --config wrangler.production.toml
+npx wrangler secret put PRETIX_KEY_SAPPORO --env production
 ```
 
-- `whoami` で、本番の Worker があるアカウント（`wrangler.production.toml` の `account_id`）が一覧に出ることを確かめる
+- `whoami` で、本番の Worker があるアカウント（`.env` の `CLOUDFLARE_ACCOUNT_ID`）が一覧に出ることを確かめる
+- `--env production` を付け忘れると、テスト用の `mogiri-test` に入ってしまう
 - Secret 名は `PRETIX_KEY_` で始まり、英大文字・数字・`_` だけにする
 - トークンはプロンプトに貼り付ける。チャットやファイル、コマンドの引数には書かない
 
@@ -77,9 +78,9 @@ npx wrangler secret put PRETIX_KEY_SAPPORO --config wrangler.production.toml
 
 | 症状 | 確かめること |
 |---|---|
-| 「アプリケーションが応答しませんでした」 | 本番の Discord アプリの Interactions Endpoint URL が設定されているか。Cloudflare の Worker が動いているか（`npx wrangler tail mogiri --config wrangler.production.toml`） |
+| 「アプリケーションが応答しませんでした」 | 本番の Discord アプリの Interactions Endpoint URL が設定されているか。Cloudflare の Worker が動いているか（`npx wrangler tail --env production`） |
 | 「ロールを付けられませんでした」 | 参加者ロールが Bot のロールより下にあるか |
-| `/mogiri-check` で Secret がないと出る | 手順 2 の Secret 名と、`key_secret` の名前が同じか。`--config wrangler.production.toml` を付けたか |
-| `/mogiri-admin` が拒否される | 自分の Discord ユーザー ID が `ADMIN_USER_IDS` に入っているか（入れるには `wrangler.production.toml` を直してデプロイが要る） |
+| `/mogiri-check` で Secret がないと出る | 手順 2 の Secret 名と、`key_secret` の名前が同じか。`--env production` を付けたか |
+| `/mogiri-admin` が拒否される | 自分の Discord ユーザー ID が `ADMIN_USER_IDS` に入っているか（足すときは管理担当が `npx wrangler secret put ADMIN_USER_IDS --env production` で全員分を入れ直す。デプロイは要らない） |
 | `/mogiri-admin` や `/mogiri-check` がコマンドの一覧に出ない | そのサーバーで管理者権限があるか、連携サービス > mogiri で許可されているか。Discord を再読み込み（Ctrl+R）してもう一度見る |
 | 受付は成功したのに、受付チャンネルに投稿が出ない | Bot にそのチャンネルへの投稿権限があるか。投稿に失敗しても受付（ロールと記録）は終わっていて、本人には「完了」と出る。ログ（`npx wrangler tail`）に `failed to post the check-in record` が出る |

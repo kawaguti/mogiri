@@ -9,6 +9,7 @@ export const InteractionType = { PING: 1, APPLICATION_COMMAND: 2 };
 export const ResponseType = { PONG: 1, CHANNEL_MESSAGE: 4, DEFERRED_CHANNEL_MESSAGE: 5 };
 const EPHEMERAL = 1 << 6;
 const MAX_CONTENT = 2000;
+const DEFAULT_MOGIRI_RESPONSE = 'mogiri（サーバーレス版）です。/<カンファレンス名> ordernumber:<注文番号> で受付できます。';
 
 const ephemeral = content => ({ type: ResponseType.CHANNEL_MESSAGE, data: { content, flags: EPHEMERAL, allowed_mentions: { parse: [] } } });
 const deferred = ({ hidden = false } = {}) => ({ type: ResponseType.DEFERRED_CHANNEL_MESSAGE, data: hidden ? { flags: EPHEMERAL } : {} });
@@ -71,7 +72,7 @@ export function routeInteraction(interaction, deps) {
 
     const name = interaction.data?.name;
     if (name === 'mogiri') {
-        return { response: { type: ResponseType.CHANNEL_MESSAGE, data: { content: deps.env.MOGIRI_RESPONSE || 'mogiri です。', allowed_mentions: { parse: [] } } } };
+        return { response: { type: ResponseType.CHANNEL_MESSAGE, data: { content: deps.env.MOGIRI_RESPONSE || DEFAULT_MOGIRI_RESPONSE, allowed_mentions: { parse: [] } } } };
     }
     if (!interaction.guild_id || !interaction.member) {
         return { response: ephemeral('サーバー内のチャンネルで実行してください。') };

@@ -6,6 +6,8 @@
   "scripts": {
     "test": "cd .. && npm run test:serverless",
     "dev": "wrangler dev",
+    "deploy": "node scripts/deploy.mjs test",
+    "deploy:production": "node scripts/deploy.mjs production",
     "build:check": "wrangler deploy --dry-run --outdir dist"
   },
   "engines": {
