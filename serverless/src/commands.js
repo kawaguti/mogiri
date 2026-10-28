@@ -32,6 +32,10 @@ export const BASE_COMMANDS = [
                 options: [{ type: STRING, name: 'name', description: 'コマンド名', required: true }],
             },
             { type: SUB_COMMAND, name: 'sync', description: 'このサーバーのコマンド登録を D1 の内容に合わせ直します' },
+            {
+                type: SUB_COMMAND, name: 'analytics', description: '受付枚数を表示します（name を指定すると Pretix の販売枚数も）',
+                options: [{ type: STRING, name: 'name', description: 'コマンド名。指定すると Pretix の販売枚数と並べる' }],
+            },
         ],
     },
 ];

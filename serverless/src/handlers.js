@@ -227,6 +227,46 @@ export async function runMogiriCheck(interaction, { env, store, discord, checkPr
     return 'mogiri-check';
 }
 
+// 日本時間の今日の 0 時を、D1 の created_at と比べられる UTC の文字列で返す
+function startOfTodayJst(now = Date.now()) {
+    const jst = new Date(now + 9 * 60 * 60 * 1000);
+    return new Date(Date.UTC(jst.getUTCFullYear(), jst.getUTCMonth(), jst.getUTCDate()) - 9 * 60 * 60 * 1000).toISOString();
+}
+
+// 受付枚数を数える。Pretix は name を指定したカンファレンス1つにだけ問い合わせる
+// （全カンファレンスに問い合わせると、Workers の1リクエストあたりの外部問い合わせの上限に近づくため）。
+async function runAnalytics(name, guildId, { env, store, countPaidAdmissions }) {
+    const conferences = await store.listConferences(guildId);
+    const counts = new Map((await store.checkinCounts(guildId, startOfTodayJst())).map(r => [r.conference, r]));
+    const line = c => {
+        const r = counts.get(c.name);
+        return `受付 ${r?.total ?? 0}枚（注文 ${r?.orders ?? 0}件）・今日 ${r?.since_count ?? 0}枚`;
+    };
+
+    if (!name) {
+        if (conferences.length === 0) return 'このサーバーにはカンファレンスが登録されていません。';
+        return [
+            ...conferences.map(c => `• /${c.name} … ${line(c)}`),
+            'ℹ️ `name` を指定すると、Pretix の販売枚数と並べて表示します。',
+        ].join('\n').slice(0, MAX_CONTENT);
+    }
+
+    const conference = conferences.find(c => c.name === name);
+    if (!conference) return `❌ ${displayInput(name)} はこのサーバーに登録されていません。`;
+    const lines = [`📊 /${conference.name}`, line(conference)];
+    const withKey = withPretixKey(conference, env);
+    if (!withKey.pretix_private_key) {
+        lines.push(`⚠️ Secret \`${conference.pretix_key_secret}\` が設定されていないため、販売枚数を取得できません`);
+    }
+    else {
+        const sold = await countPaidAdmissions(withKey);
+        const checkedIn = counts.get(conference.name)?.total ?? 0;
+        if (sold === null) lines.push('⚠️ Pretix から販売枚数を取得できませんでした');
+        else lines.push(`販売 ${sold}枚（支払い済みの入場券）${sold > 0 ? `・受付率 ${Math.round(checkedIn / sold * 100)}%` : ''}`);
+    }
+    return lines.join('\n');
+}
+
 async function syncCommands(interaction, { store, discord }) {
     const conferences = await store.listConferences(interaction.guild_id);
     await discord.setGuildCommands(interaction.application_id, interaction.guild_id, guildCommands(conferences));
@@ -283,6 +323,10 @@ export async function runAdmin(interaction, deps) {
     if (sub?.name === 'sync') {
         const conferences = await syncCommands(interaction, deps);
         return `✅ コマンドを登録し直しました（カンファレンス ${conferences.length}件）。`;
+    }
+
+    if (sub?.name === 'analytics') {
+        return runAnalytics(getOption(sub.options, 'name'), guildId, deps);
     }
 
     return '不明なサブコマンドです。';

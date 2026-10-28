@@ -30,6 +30,8 @@ describe('serverless worker', function() {
     let discord;
     let pretixCalls;
     let pretixResult;
+    let soldCalls;
+    let soldResult;
 
     before(async function() {
         signer = await createSigner();
@@ -42,6 +44,8 @@ describe('serverless worker', function() {
         discord = createFakeDiscord({ roles: [{ id: ROLE_ID, name: RSGT.discord_role }] });
         pretixCalls = [];
         pretixResult = { isValid: true, ticketCount: 2, reason: null };
+        soldCalls = [];
+        soldResult = 8;
         env = {
             DISCORD_PUBLIC_KEY: signer.publicKeyHex,
             PRETIX_KEY_SCRUMGATHERING: 'pretix-secret-token',
@@ -60,6 +64,10 @@ describe('serverless worker', function() {
                 pretixCalls.push({ order, conference });
                 if (pretixResult instanceof Error) throw pretixResult;
                 return pretixResult;
+            },
+            countPaidAdmissions: async conference => {
+                soldCalls.push(conference);
+                return soldResult;
             },
         });
         const ctx = createCtx();
@@ -458,6 +466,67 @@ describe('serverless worker', function() {
             // URL はひと続きにし、<> で囲んでリンクのプレビューを出さない
             text.should.match(/<https:\/\/pretix\.eu\/[^\s/]+\/[^\s/]+\/>/);
             text.should.not.containEql('pretix-secret-token');
+        });
+    });
+
+    describe('/mogiri-admin analytics', function() {
+        const analytics = name => commandInteraction('mogiri-admin', {
+            options: [{ type: 1, name: 'analytics', options: name ? [{ name: 'name', type: 3, value: name }] : [] }],
+        });
+
+        beforeEach(async function() {
+            // 同じ注文で2枚、別の注文で1枚。うち1枚は昨日以前の記録
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: '1' });
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: '2' });
+            d1.raw.prepare(`INSERT INTO checkins (guild_id, conference, order_number, user_id, created_at)
+                VALUES (?, 'rsgt2027', 'CD34E', '3', '2026-01-01T00:00:00.000Z')`).run(GUILD_ID);
+        });
+
+        it('lists check-in counts for every conference without calling Pretix', async function() {
+            const { body } = await send(analytics());
+            body.should.eql({ type: 5, data: { flags: 64 } });
+            discord.edits()[0].should.containEql('/rsgt2027 … 受付 3枚（注文 2件）・今日 2枚');
+            soldCalls.should.have.length(0);
+        });
+
+        it('shows the sold count and the check-in rate for the named conference', async function() {
+            await send(analytics('rsgt2027'));
+            const text = discord.edits()[0];
+            text.should.containEql('受付 3枚（注文 2件）・今日 2枚');
+            text.should.containEql('販売 8枚（支払い済みの入場券）・受付率 38%');
+            soldCalls.should.have.length(1);
+            soldCalls[0].pretix_private_key.should.equal('pretix-secret-token');
+        });
+
+        it('says so when Pretix cannot be read', async function() {
+            soldResult = null;
+            await send(analytics('rsgt2027'));
+            discord.edits()[0].should.containEql('販売枚数を取得できませんでした');
+        });
+
+        it('does not call Pretix when the token secret is missing', async function() {
+            delete env.PRETIX_KEY_SCRUMGATHERING;
+            await send(analytics('rsgt2027'));
+            discord.edits()[0].should.containEql('`PRETIX_KEY_SCRUMGATHERING` が設定されていない');
+            soldCalls.should.have.length(0);
+        });
+
+        it('does not count conferences of another server', async function() {
+            await send(analytics('rsgt2027'));
+            await send(commandInteraction('mogiri-admin', {
+                guildId: OTHER_GUILD_ID,
+                options: [{ type: 1, name: 'analytics', options: [{ name: 'name', type: 3, value: 'rsgt2027' }] }],
+            }));
+            discord.edits()[1].should.containEql('このサーバーに登録されていません');
+            soldCalls.should.have.length(1);
+        });
+
+        it('is refused for users not listed in ADMIN_USER_IDS', async function() {
+            const { body } = await send(commandInteraction('mogiri-admin', {
+                userId: '777777777777777777',
+                options: [{ type: 1, name: 'analytics', options: [] }],
+            }));
+            body.data.content.should.containEql('運営者だけ');
         });
     });
 });
