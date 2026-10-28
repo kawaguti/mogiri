@@ -445,6 +445,8 @@ describe('serverless worker', function() {
             const text = discord.edits()[0];
             text.should.containEql('/rsgt2027');
             text.should.containEql('PRETIX_KEY_SCRUMGATHERING');
+            // URL はひと続きにし、<> で囲んでリンクのプレビューを出さない
+            text.should.match(/<https:\/\/pretix\.eu\/[^\s/]+\/[^\s/]+\/>/);
             text.should.not.containEql('pretix-secret-token');
         });
     });

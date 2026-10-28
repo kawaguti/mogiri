@@ -242,7 +242,7 @@ export async function runAdmin(interaction, deps) {
         const conferences = await store.listConferences(guildId);
         if (conferences.length === 0) return 'このサーバーにはカンファレンスが登録されていません。';
         return conferences.map(c =>
-            `• /${c.name} → ロール「${c.discord_role}」 ${c.pretix_base_url} ${c.pretix_organizer}/${c.pretix_event_slug} (${c.pretix_key_secret}${env[c.pretix_key_secret] ? '' : ' ⚠️未設定'})`,
+            `• /${c.name} → ロール「${c.discord_role}」 <${c.pretix_base_url.replace(/\/+$/, '')}/${c.pretix_organizer}/${c.pretix_event_slug}/> (${c.pretix_key_secret}${env[c.pretix_key_secret] ? '' : ' ⚠️未設定'})`,
         ).join('\n');
     }
 
