@@ -469,6 +469,112 @@ describe('serverless worker', function() {
         });
     });
 
+    describe('/mogiri-admin whois', function() {
+        const ATTENDEE = '666666666666666666';
+        const whois = ({ member = { roles: [ROLE_ID] }, userId = ATTENDEE } = {}) => {
+            const interaction = commandInteraction('mogiri-admin', {
+                options: [{ type: 1, name: 'whois', options: [{ name: 'user', type: 6, value: userId }] }],
+            });
+            interaction.data.resolved = member ? { members: { [userId]: member } } : {};
+            return interaction;
+        };
+
+        beforeEach(async function() {
+            // 同じ注文をほかの人が先に1枚使っている
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: '1' });
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: ATTENDEE });
+            // 別のサーバーの記録は出さない
+            await store.recordCheckin({ guildId: OTHER_GUILD_ID, conference: 'other', orderNumber: 'ZZ00Z', userId: ATTENDEE });
+        });
+
+        it('shows the check-ins, the role and the attempts of the chosen user only to the admin', async function() {
+            await store.recordAttempt(ATTENDEE, 600, 5);
+            const { body } = await send(whois());
+            body.should.eql({ type: 5, data: { flags: 64 } });
+            const text = discord.edits()[0];
+            text.should.containEql(`<@${ATTENDEE}>`);
+            text.should.match(/• \/rsgt2027 \d{4}\/\d{2}\/\d{2} \d{2}:\d{2} 注文 `AB12C`（2枚目）/);
+            text.should.not.containEql('ZZ00Z');
+            text.should.containEql('/rsgt2027 「RSGT2027参加者」: あり');
+            text.should.containEql('1回 / 上限 5回');
+            text.should.not.containEql('上限に達しています');
+        });
+
+        it('points out a user who hit the attempt limit and has no role', async function() {
+            for (let i = 0; i < 5; i++) await store.recordAttempt('777777777777777777', 600, 5);
+            await send(whois({ userId: '777777777777777777', member: { roles: [] } }));
+            const text = discord.edits()[0];
+            text.should.containEql('このサーバーでの記録はありません');
+            text.should.containEql('どの参加者ロールも持っていません');
+            text.should.containEql('上限に達しています');
+        });
+
+        it('says so when the user is not a member of the server', async function() {
+            await send(whois({ member: null }));
+            const text = discord.edits()[0];
+            text.should.containEql('このサーバーのメンバーではありません');
+            text.should.containEql('/rsgt2027 「RSGT2027参加者」: なし');
+        });
+
+        it('does not mention anyone in the reply', async function() {
+            await send(whois());
+            discord.calls.filter(c => c[0] === 'sendMessage').should.have.length(0);
+        });
+    });
+
+    describe('/mogiri-admin order', function() {
+        const orderCommand = (number, name) => commandInteraction('mogiri-admin', {
+            options: [{ type: 1, name: 'order', options: [
+                { name: 'number', type: 3, value: number },
+                ...(name ? [{ name: 'name', type: 3, value: name }] : []),
+            ] }],
+        });
+
+        beforeEach(async function() {
+            // Gateway 版から取り込んだ記録（ユーザーなし）と、サーバーレス版での受付2回
+            d1.raw.prepare(`INSERT INTO checkins (guild_id, conference, order_number, created_at)
+                VALUES (?, 'rsgt2027', 'AB12C', '2026-01-01T00:00:00.000Z')`).run(GUILD_ID);
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: '1' });
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: '2' });
+        });
+
+        it('lists who used the order and compares it with the tickets in Pretix', async function() {
+            const { body } = await send(orderCommand('＃ab12c'));
+            body.should.eql({ type: 5, data: { flags: 64 } });
+            const text = discord.edits()[0];
+            text.should.containEql('🎫 注文 `AB12C`');
+            text.should.containEql('**/rsgt2027**（受付 3回）');
+            text.should.containEql('Pretix: 有効・入場券 2枚（⚠️ 1回多く受付されている）');
+            text.should.containEql('1枚目 2026/01/01 09:00 （だれが受付したかの記録なし）');
+            text.should.containEql('<@1>');
+            text.should.containEql('3枚目');
+            pretixCalls.should.have.length(1);
+            pretixCalls[0].order.should.equal('AB12C');
+        });
+
+        it('explains why Pretix rejects the order', async function() {
+            pretixResult = { isValid: false, ticketCount: 0, reason: 'not_paid_or_canceled' };
+            await send(orderCommand('AB12C'));
+            discord.edits()[0].should.containEql('Pretix: 未払いかキャンセル済み');
+        });
+
+        it('does not call Pretix for an order without records unless a conference is named', async function() {
+            await send(orderCommand('ZZ99Z'));
+            discord.edits()[0].should.containEql('このサーバーでの受付の記録はありません');
+            pretixCalls.should.have.length(0);
+
+            await send(orderCommand('ZZ99Z', 'rsgt2027'));
+            discord.edits()[1].should.containEql('**/rsgt2027**（受付 0回）');
+            pretixCalls.should.have.length(1);
+        });
+
+        it('rejects input that is not an order number', async function() {
+            await send(orderCommand('AB-12'));
+            discord.edits()[0].should.startWith('❌');
+            pretixCalls.should.have.length(0);
+        });
+    });
+
     describe('/mogiri-admin analytics', function() {
         const analytics = name => commandInteraction('mogiri-admin', {
             options: [{ type: 1, name: 'analytics', options: name ? [{ name: 'name', type: 3, value: name }] : [] }],

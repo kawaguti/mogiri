@@ -70,6 +70,8 @@ npm run test:serverless
 | B-09 | `/mogiri-admin add` で `key_secret:DISCORD_BOT_TOKEN` | 「key_secret は `PRETIX_KEY_` で始まる…」で拒否される。`PRETIX_KEY_` が斜体にならず、`_` が見える |
 | B-09a | `/mogiri-admin analytics` | 本人にだけ、カンファレンスごとに「受付 N枚（注文 M件）・今日 K枚」。Pretix は呼ばれない |
 | B-09b | `/mogiri-admin analytics name:rsgt2027` | 上に加えて「販売 S枚（支払い済みの入場券）・受付率 X%」。販売枚数は Pretix の管理画面の支払い済みの入場券の数と同じ |
+| B-09c | `/mogiri-admin whois user:` で、B-10 で受付したアカウントを選ぶ | 本人にだけ、受付の記録（注文番号と何枚目か）、参加者ロールの有無、直近の試行回数が出る |
+| B-09d | `/mogiri-admin order number:<B-10 で使った注文番号>` | 本人にだけ、受付の回数と、何枚目をだれがいつ受付したか、Pretix での入場券の枚数が出る。受付が枚数より多ければ「多く受付されている」と出る |
 
 ### 受付
 

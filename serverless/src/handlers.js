@@ -227,6 +227,94 @@ export async function runMogiriCheck(interaction, { env, store, discord, checkPr
     return 'mogiri-check';
 }
 
+// 参加者からの問い合わせに答えるため、その人の受付の記録・参加者ロールの有無・直近の試行回数をまとめる。
+// 返信は実行した管理者にだけ見えるので、注文番号も出す。
+async function runWhois(userId, interaction, { env, store, discord }) {
+    if (!/^\d{1,20}$/.test(userId || '')) return '❌ user を指定してください。';
+    const guildId = interaction.guild_id;
+    const { maxAttempts, windowSeconds } = attemptLimit(env);
+    const [conferences, records, roles, attempts] = await Promise.all([
+        store.listConferences(guildId), store.userCheckins(guildId, userId),
+        discord.getGuildRoles(guildId), store.countRecentAttempts(userId, windowSeconds),
+    ]);
+    // ユーザーを選ぶ入力では、選んだメンバーのロールが resolved に入ってくる
+    const member = interaction.data.resolved?.members?.[userId];
+
+    const lines = [`👤 <@${userId}>（\`${userId}\`）`];
+    if (!member) lines.push('⚠️ このサーバーのメンバーではありません');
+
+    lines.push('', '**受付の記録**');
+    if (records.length === 0) lines.push('このサーバーでの記録はありません');
+    for (const r of records) {
+        lines.push(`• /${r.conference} ${formatJst(r.created_at)} 注文 \`${r.order_number}\`（${r.nth}枚目）`);
+    }
+
+    // 記録があるか、ロールを持っているカンファレンスだけ並べる
+    const recorded = new Set(records.map(r => r.conference));
+    const roleLines = conferences.flatMap(c => {
+        const role = roles.find(x => x.name === c.discord_role);
+        const has = Boolean(role && member?.roles?.includes(role.id));
+        if (!has && !recorded.has(c.name)) return [];
+        return [`• /${c.name} 「${c.discord_role}」: ${role ? (has ? 'あり' : 'なし') : 'ロールがサーバーにない'}`];
+    });
+    lines.push('', '**参加者ロール**', ...(roleLines.length ? roleLines : ['どの参加者ロールも持っていません']));
+
+    lines.push('', `**受付の試行**（直近 ${Math.round(windowSeconds / 60)} 分）: ${attempts}回 / 上限 ${maxAttempts}回`);
+    if (attempts >= maxAttempts) lines.push('⚠️ 上限に達しています。いちばん古い試行から時間がたつと、また試せます');
+
+    lines.push('', 'ℹ️ サーバーレス版に切り替える前（2026-10-27 より前）の受付は、だれが受付したかが記録されていないため出ません。');
+    return lines.join('\n').slice(0, MAX_CONTENT);
+}
+
+const PRETIX_REASONS = {
+    invalid_format: '注文番号の形式が正しくない',
+    api_error: '見つからない（または Pretix に接続できない）',
+    not_paid_or_canceled: '未払いかキャンセル済み',
+    no_admission: '入場券を含まない',
+};
+
+// 注文番号から、だれがいつ受付したかと、Pretix での状態（入場券の枚数）をまとめる。
+// Pretix には、記録のあるカンファレンス（記録がなければ name で指定した1つ）にだけ問い合わせる。
+async function runOrder(number, name, guildId, { env, store, checkPretixOrder }) {
+    const order = normalizeOrderNumber(number);
+    if (!/^[A-Z0-9]{1,32}$/.test(order)) return '❌ 注文番号の形式が正しくありません（英数字のみ）。';
+    const [conferences, records] = await Promise.all([store.listConferences(guildId), store.orderCheckins(guildId, order)]);
+
+    const names = [...new Set(records.map(r => r.conference))];
+    if (names.length === 0) {
+        if (!name) return `🎫 注文 \`${order}\`\nこのサーバーでの受付の記録はありません。\nℹ️ \`name\` を指定すると、そのカンファレンスの Pretix で注文を確かめます。`;
+        names.push(name);
+    }
+
+    const lines = [`🎫 注文 \`${order}\``];
+    for (const conferenceName of names) {
+        const rows = records.filter(r => r.conference === conferenceName);
+        const conference = conferences.find(c => c.name === conferenceName);
+        lines.push('', `**/${conferenceName}**（受付 ${rows.length}回）`);
+        if (!conference) {
+            lines.push(rows.length ? 'ℹ️ このカンファレンスは、いまは登録されていないため Pretix では確かめません' : `❌ ${displayInput(conferenceName)} はこのサーバーに登録されていません。`);
+        }
+        else {
+            const withKey = withPretixKey(conference, env);
+            if (!withKey.pretix_private_key) {
+                lines.push(`⚠️ Secret \`${conference.pretix_key_secret}\` が設定されていないため、Pretix では確かめません`);
+            }
+            else {
+                const result = await checkPretixOrder(order, withKey);
+                if (!result.isValid) lines.push(`Pretix: ${PRETIX_REASONS[result.reason] ?? result.reason}`);
+                else {
+                    const over = rows.length - result.ticketCount;
+                    lines.push(`Pretix: 有効・入場券 ${result.ticketCount}枚${over > 0 ? `（⚠️ ${over}回多く受付されている）` : ''}`);
+                }
+            }
+        }
+        rows.forEach((r, i) => {
+            lines.push(`• ${i + 1}枚目 ${formatJst(r.created_at)} ${r.user_id ? `<@${r.user_id}>` : '（だれが受付したかの記録なし）'}`);
+        });
+    }
+    return lines.join('\n').slice(0, MAX_CONTENT);
+}
+
 // 日本時間の今日の 0 時を、D1 の created_at と比べられる UTC の文字列で返す
 function startOfTodayJst(now = Date.now()) {
     const jst = new Date(now + 9 * 60 * 60 * 1000);
@@ -323,6 +411,14 @@ export async function runAdmin(interaction, deps) {
     if (sub?.name === 'sync') {
         const conferences = await syncCommands(interaction, deps);
         return `✅ コマンドを登録し直しました（カンファレンス ${conferences.length}件）。`;
+    }
+
+    if (sub?.name === 'whois') {
+        return runWhois(getOption(sub.options, 'user'), interaction, deps);
+    }
+
+    if (sub?.name === 'order') {
+        return runOrder(getOption(sub.options, 'number'), getOption(sub.options, 'name'), guildId, deps);
     }
 
     if (sub?.name === 'analytics') {

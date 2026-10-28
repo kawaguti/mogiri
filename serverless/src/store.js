@@ -56,6 +56,31 @@ export function createStore(db) {
             return inserted.meta.changes > 0;
         },
 
+        // あるユーザーの受付の記録（新しい順）。その注文で何枚目だったかも返す
+        async userCheckins(guildId, userId) {
+            const { results } = await db.prepare(`SELECT c.conference, c.order_number, c.created_at,
+                    (SELECT COUNT(*) FROM checkins p WHERE p.conference = c.conference AND p.order_number = c.order_number
+                        AND p.created_at <= c.created_at) AS nth
+                FROM checkins c WHERE c.guild_id = ?1 AND c.user_id = ?2 ORDER BY c.created_at DESC LIMIT 20`)
+                .bind(guildId, userId).all();
+            return results;
+        },
+
+        // ある注文番号での受付の記録（古い順）
+        async orderCheckins(guildId, orderNumber) {
+            const { results } = await db.prepare(`SELECT conference, user_id, created_at FROM checkins
+                WHERE guild_id = ?1 AND order_number = ?2 ORDER BY created_at, id`).bind(guildId, orderNumber).all();
+            return results;
+        },
+
+        // 直近 windowSeconds 秒の受付の試行回数（記録は消さない）
+        async countRecentAttempts(userId, windowSeconds) {
+            const row = await db.prepare(`SELECT COUNT(*) AS n FROM checkin_attempts
+                WHERE user_id = ?1 AND created_at >= strftime('%Y-%m-%dT%H:%M:%fZ', 'now', ?2)`)
+                .bind(userId, `-${windowSeconds} seconds`).first();
+            return row?.n ?? 0;
+        },
+
         // カンファレンスごとの受付枚数（記録の数）、注文の数、since 以降の受付枚数
         async checkinCounts(guildId, since) {
             const { results } = await db.prepare(`SELECT conference, COUNT(*) AS total, COUNT(DISTINCT order_number) AS orders,
