@@ -404,7 +404,7 @@ describe('serverless worker', function() {
             const { body } = await send(admin('add', addOptions()));
             body.should.eql({ type: 5, data: { flags: 64 } });
             discord.edits()[0].should.containEql('/scrumfest-osaka-2027 を追加しました');
-            discord.edits()[0].should.containEql('PRETIX_KEY_SCRUMFEST がまだ設定されていません');
+            discord.edits()[0].should.containEql('`PRETIX_KEY_SCRUMFEST` がまだ設定されていません');
 
             const saved = await store.getConference('scrumfest-osaka-2027');
             saved.pretix_base_url.should.equal('https://pretix.eu');
@@ -419,12 +419,22 @@ describe('serverless worker', function() {
         it('refuses a Pretix URL that is not in the allow list', async function() {
             await send(admin('add', addOptions({ base_url: 'https://evil.example' })));
             discord.edits()[0].should.startWith('❌ base_url');
+            // URL はコードとして表示し、リンクのプレビューを出さない
+            discord.edits()[0].should.containEql('`https://pretix.eu`');
             should(await store.getConference('scrumfest-osaka-2027')).be.null();
         });
 
         it('refuses secret names other than PRETIX_KEY_*', async function() {
             await send(admin('add', addOptions({ key_secret: 'DISCORD_BOT_TOKEN' })));
             discord.edits()[0].should.startWith('❌ key_secret');
+            // _ が斜体の記号として読まれないよう、名前はコードとして表示する
+            discord.edits()[0].should.containEql('`PRETIX_KEY_`');
+        });
+
+        it('normalizes the test order number like the check-in command', async function() {
+            await send(admin('add', addOptions({ test_order: ' ＃ａｂｃ１２ ' })));
+            discord.edits()[0].should.containEql('を追加しました');
+            (await store.getConference('scrumfest-osaka-2027')).ordernumber_for_test.should.equal('ABC12');
         });
 
         it('refuses to take over a conference name used by another server', async function() {

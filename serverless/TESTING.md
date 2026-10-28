@@ -62,12 +62,12 @@ npm run test:serverless
 
 | ID | 操作 | 期待する結果 |
 |---|---|---|
-| B-04 | `/mogiri-admin add name:rsgt2027 role:RSGT2027参加者 organizer:<organizer> event:<slug> key_secret:PRETIX_KEY_SCRUMGATHERING test_order:<有効な注文番号>` | 本人にだけ「追加しました」。数秒で `/rsgt2027` が使える（出ないときは Ctrl+R） |
-| B-05 | `/mogiri-admin list` | 本人にだけ一覧。Pretix のイベントの URL はひと続きのリンクで、プレビューが出ない。トークンの値は出ない |
-| B-06 | `/mogiri-check` | ロール・Secret・テスト用注文番号の確認結果・記録件数が出る。注文番号はチャンネルに出ない |
+| B-04 | `/mogiri-admin add name:rsgt2027 role:RSGT2027参加者 organizer:<organizer> event:<slug> key_secret:PRETIX_KEY_SCRUMGATHERING test_order:<有効な注文番号>` | 本人にだけ「追加しました」（すでにあれば「更新しました」）。数秒で `/rsgt2027` が使える（出ないときは Ctrl+R）。`test_order` は全角・小文字・`#` 付きでも受け付ける |
+| B-05 | `/mogiri-admin list` | 本人にだけ一覧。Pretix のイベントの URL はひと続きのリンクで、プレビューが出ない。Secret 名はコードの表示（`_` が消えない）。トークンの値は出ない |
+| B-06 | `/mogiri-check` | 記録件数、ロールが見つかったか、テスト用注文番号が有効か、チケット枚数が出る（Secret の行は、未設定のときだけ出る）。注文番号はチャンネルに出ない |
 | B-07 | 別のアカウントで `/mogiri-admin list` | 拒否される（コマンドが見えないときは、連携サービスで一時的に許可して試す） |
-| B-08 | `/mogiri-admin add` で `base_url:https://example.com` | 「base_url は次のいずれかにしてください」で拒否される |
-| B-09 | `/mogiri-admin add` で `key_secret:DISCORD_BOT_TOKEN` | 「key_secret は PRETIX_KEY_ で始まる…」で拒否される |
+| B-08 | `/mogiri-admin add` で `base_url:https://example.com` | 「base_url は次のいずれかにしてください: `https://pretix.eu`」で拒否される。URL にプレビューが付かない |
+| B-09 | `/mogiri-admin add` で `key_secret:DISCORD_BOT_TOKEN` | 「key_secret は `PRETIX_KEY_` で始まる…」で拒否される。`PRETIX_KEY_` が斜体にならず、`_` が見える |
 
 ### 受付
 
@@ -86,7 +86,7 @@ npm run test:serverless
 | ID | 操作 | 期待する結果 | 終わったら |
 |---|---|---|---|
 | B-17 | サーバー設定 > ロールで、Bot のロールを参加者ロールより下に移してから受付 | 「ロールを付けられませんでした」。記録件数（`/mogiri-check`）は増えない | ロールの順番を戻す |
-| B-18 | 受付チャンネルで Bot の「メッセージを送信」を拒否してから受付 | 本人には「認証が完了」、ロールも付く。tail に `failed to post the check-in record` | 権限を戻す |
+| B-18（任意） | 受付チャンネルで Bot の「メッセージを送信」を拒否してから受付 | 本人には「認証が完了」、ロールも付く。tail に `failed to post the check-in record` | 権限を戻す |
 | B-19 | `/mogiri-admin remove name:rsgt2027` | `/rsgt2027` が消える | B-04 で入れ直す |
 
 ### 設定とデプロイ
@@ -102,7 +102,9 @@ npm run test:serverless
 | ID | 操作 | 期待する結果 |
 |---|---|---|
 | B-23 | 15分以上だれも使っていない状態で `/mogiri` と B-10 | 「アプリケーションが応答しませんでした」にならない |
-| B-24 | 全項目のあとで tail を見る | B-18 で意図したもの以外にエラーがない |
+| B-24 | 全項目のあとで tail を見る | 意図して起こした失敗（B-17、B-18）以外にエラーがない |
+
+B-18 は、Bot の権限や受付チャンネルの扱いを変えたときだけ行う（投稿の失敗は自動テストで確かめている）。
 
 コードの変更が一部だけのときも、B-01、B-04〜B-06、B-10、B-14、B-20、B-24 は毎回行う。変えた部分に関係する項目を足す。
 

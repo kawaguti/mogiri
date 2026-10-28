@@ -54,14 +54,14 @@ export const DEFAULT_PRETIX_BASE_URL = 'https://pretix.eu';
 // pretix_base_url を許可リストに限り、Secret 名を PRETIX_KEY_ に限ることで、
 // 別のホストへトークンを送らせたり Bot トークンを読ませたりできないようにする。
 export function validateConference(c, allowedOrigins) {
-    if (!/^[a-z0-9_-]{1,32}$/.test(c.name || '')) return 'name は英小文字・数字・-・_ の32文字以内にしてください';
+    if (!/^[a-z0-9_-]{1,32}$/.test(c.name || '')) return 'name は英小文字・数字・`-`・`_` の32文字以内にしてください';
     if (RESERVED_NAMES.includes(c.name)) return `${c.name} は予約されたコマンド名です`;
     if (!c.discord_role || c.discord_role.length > 100) return 'role を指定してください';
-    if (!allowedOrigins.includes(c.pretix_base_url)) return `base_url は次のいずれかにしてください: ${allowedOrigins.join(', ')}`;
+    if (!allowedOrigins.includes(c.pretix_base_url)) return `base_url は次のいずれかにしてください: ${allowedOrigins.map(o => `\`${o}\``).join(', ')}`;
     if (!/^[A-Za-z0-9._-]{1,64}$/.test(c.pretix_organizer || '')) return 'organizer の形式が正しくありません';
     if (!/^[A-Za-z0-9._-]{1,64}$/.test(c.pretix_event_slug || '')) return 'event の形式が正しくありません';
-    if (!/^PRETIX_KEY_[A-Z0-9_]{1,64}$/.test(c.pretix_key_secret || '')) return 'key_secret は PRETIX_KEY_ で始まる英大文字・数字・_ にしてください';
-    if (c.ordernumber_for_test && !/^[A-Za-z0-9]{1,32}$/.test(c.ordernumber_for_test)) return 'test_order の形式が正しくありません';
+    if (!/^PRETIX_KEY_[A-Z0-9_]{1,64}$/.test(c.pretix_key_secret || '')) return 'key_secret は `PRETIX_KEY_` で始まる英大文字・数字・`_` にしてください';
+    if (c.ordernumber_for_test && !/^[A-Za-z0-9]{1,32}$/.test(c.ordernumber_for_test)) return 'test_order の形式が正しくありません（英数字のみ）';
     if (!/^\d{1,20}$/.test(c.guild_id || '')) return 'guild_id の形式が正しくありません';
     return null;
 }
