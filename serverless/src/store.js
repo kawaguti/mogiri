@@ -66,6 +66,13 @@ export function createStore(db) {
             return results;
         },
 
+        // ある注文番号での受付の記録（古い順）
+        async orderCheckins(guildId, orderNumber) {
+            const { results } = await db.prepare(`SELECT conference, user_id, created_at FROM checkins
+                WHERE guild_id = ?1 AND order_number = ?2 ORDER BY created_at, id`).bind(guildId, orderNumber).all();
+            return results;
+        },
+
         // 直近 windowSeconds 秒の受付の試行回数（記録は消さない）
         async countRecentAttempts(userId, windowSeconds) {
             const row = await db.prepare(`SELECT COUNT(*) AS n FROM checkin_attempts

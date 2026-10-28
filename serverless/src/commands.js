@@ -34,8 +34,15 @@ export const BASE_COMMANDS = [
             },
             { type: SUB_COMMAND, name: 'sync', description: 'このサーバーのコマンド登録を D1 の内容に合わせ直します' },
             {
-                type: SUB_COMMAND, name: 'lookup', description: '参加者の受付の記録・ロール・試行回数を表示します（問い合わせ対応用）',
+                type: SUB_COMMAND, name: 'whois', description: '参加者の受付の記録・ロール・試行回数を表示します（問い合わせ対応用）',
                 options: [{ type: USER, name: 'user', description: '調べる参加者', required: true }],
+            },
+            {
+                type: SUB_COMMAND, name: 'order', description: '注文番号で受付の記録と Pretix の状態を表示します（問い合わせ対応用）',
+                options: [
+                    { type: STRING, name: 'number', description: '注文番号', required: true },
+                    { type: STRING, name: 'name', description: '受付の記録がないとき、Pretix で確かめるカンファレンスのコマンド名' },
+                ],
             },
             {
                 type: SUB_COMMAND, name: 'analytics', description: '受付枚数を表示します（name を指定すると Pretix の販売枚数も）',
