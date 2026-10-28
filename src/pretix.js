@@ -97,4 +97,21 @@ async function checkPretixOrder(orderId, conference) {
     };
 }
 
+// 支払い済みの注文に含まれる入場券の枚数（販売枚数）を返す。取れなければ null。
+// orderpositions の一覧は件数（count）を返すので、1ページ目だけ読めば足りる。
+// キャンセルされた position は既定で一覧に含まれない。
+async function countPaidAdmissions(conference) {
+    try {
+        const admissionItemIds = await fetchAdmissionItemIds(conference);
+        if (admissionItemIds.size === 0) return 0;
+        const ids = [...admissionItemIds].join(',');
+        const data = await getJson(`${eventUrl(conference)}/orderpositions/?order__status=p&item__in=${ids}`, conference);
+        return Number.isInteger(data.count) ? data.count : null;
+    } catch (error) {
+        console.error('Pretix API error (positions):', error.message);
+        return null;
+    }
+}
+
 module.exports = checkPretixOrder;
+module.exports.countPaidAdmissions = countPaidAdmissions;

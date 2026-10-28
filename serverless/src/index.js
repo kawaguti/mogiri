@@ -32,6 +32,7 @@ export function createWorker(overrides = {}) {
                 store: overrides.store ?? createStore(env.DB),
                 discord: overrides.discord ?? createDiscordClient({ token: env.DISCORD_BOT_TOKEN }),
                 checkPretixOrder: overrides.checkPretixOrder ?? checkPretixOrder,
+                countPaidAdmissions: overrides.countPaidAdmissions ?? checkPretixOrder.countPaidAdmissions,
             };
 
             const { response, work } = routeInteraction(interaction, deps);

@@ -119,4 +119,28 @@ describe('pretix (fetch based)', function() {
         result.should.have.properties(['isValid', 'ticketCount', 'reason']);
         should(result.isValid).be.false();
     });
+
+    describe('countPaidAdmissions', function() {
+        const { countPaidAdmissions } = checkPretixOrder;
+
+        it('counts admission positions of paid orders from the count field', async function() {
+            stubFetch({
+                [`${BASE}/items/`]: ITEMS,
+                [`${BASE}/orderpositions/?order__status=p&item__in=1`]: { count: 42, next: 'x', results: [] },
+            });
+            (await countPaidAdmissions(conference)).should.equal(42);
+            requests.every(r => r.init.headers.Authorization === 'Token token').should.be.true();
+        });
+
+        it('returns 0 without asking for positions when no item is an admission ticket', async function() {
+            stubFetch({ [`${BASE}/items/`]: { results: [{ id: 2, admission: false }], next: null } });
+            (await countPaidAdmissions(conference)).should.equal(0);
+            requests.should.have.length(1);
+        });
+
+        it('returns null when Pretix fails', async function() {
+            stubFetch({ [`${BASE}/items/`]: ITEMS, [`${BASE}/orderpositions/?order__status=p&item__in=1`]: 500 });
+            should(await countPaidAdmissions(conference)).be.null();
+        });
+    });
 });

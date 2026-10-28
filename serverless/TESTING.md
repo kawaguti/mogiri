@@ -68,6 +68,8 @@ npm run test:serverless
 | B-07 | 別のアカウントで `/mogiri-admin list` | 拒否される（コマンドが見えないときは、連携サービスで一時的に許可して試す） |
 | B-08 | `/mogiri-admin add` で `base_url:https://example.com` | 「base_url は次のいずれかにしてください: `https://pretix.eu`」で拒否される。URL にプレビューが付かない |
 | B-09 | `/mogiri-admin add` で `key_secret:DISCORD_BOT_TOKEN` | 「key_secret は `PRETIX_KEY_` で始まる…」で拒否される。`PRETIX_KEY_` が斜体にならず、`_` が見える |
+| B-09a | `/mogiri-admin analytics` | 本人にだけ、カンファレンスごとに「受付 N枚（注文 M件）・今日 K枚」。Pretix は呼ばれない |
+| B-09b | `/mogiri-admin analytics name:rsgt2027` | 上に加えて「販売 S枚（支払い済みの入場券）・受付率 X%」。販売枚数は Pretix の管理画面の支払い済みの入場券の数と同じ |
 
 ### 受付
 
@@ -118,6 +120,7 @@ B-18 は、Bot の権限や受付チャンネルの扱いを変えたときだ�
 | C-02 | 本番のサーバーで `/mogiri` | 案内が返る（署名の検証が通っている） |
 | C-03 | `/mogiri-admin list` | 一覧が出る（`ADMIN_USER_IDS` が効いている） |
 | C-04 | `/mogiri-check` | ロールが見つかり、テスト用注文番号が有効と出る |
+| C-04a | `/mogiri-admin analytics`（コマンドの定義を変えたデプロイのあとは、先に `/mogiri-admin sync`） | 受付枚数が出る |
 | C-05 | `npx wrangler tail --env production` を数分見る | エラーがない |
 
 C-02 が「アプリケーションが応答しませんでした」になったら、すぐに直前の版に戻す（`npx wrangler rollback --env production`）。

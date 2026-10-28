@@ -56,6 +56,14 @@ export function createStore(db) {
             return inserted.meta.changes > 0;
         },
 
+        // カンファレンスごとの受付枚数（記録の数）、注文の数、since 以降の受付枚数
+        async checkinCounts(guildId, since) {
+            const { results } = await db.prepare(`SELECT conference, COUNT(*) AS total, COUNT(DISTINCT order_number) AS orders,
+                    SUM(CASE WHEN created_at >= ?2 THEN 1 ELSE 0 END) AS since_count
+                FROM checkins WHERE guild_id = ?1 GROUP BY conference`).bind(guildId, since).all();
+            return results;
+        },
+
         checkinStats: guildId =>
             db.prepare(`SELECT COUNT(*) AS total, MIN(created_at) AS oldest_at
                 FROM checkins WHERE guild_id = ?1`).bind(guildId).first(),
