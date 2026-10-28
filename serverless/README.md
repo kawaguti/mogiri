@@ -81,7 +81,9 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
 - Secret の値はダッシュボードでも読めない。今の値を確かめたいときは、入れ直す
 - `serverless/.env` には `CLOUDFLARE_ACCOUNT_ID` だけを書く（API トークンなどは書かない）。`.dev.vars` がないと、`wrangler dev` は `.env` の中身を手元の Worker の Secret として読み込む。`wrangler dev` で使う値は `.dev.vars` に書く
 
-### 古い形（vars と wrangler.production.toml）から移す（2026-10 に一度だけ）
+### 古い形（vars と wrangler.production.toml）から移す（2026-10-28 に mogiri-test と本番の両方で済み）
+
+記録として残す。手元に古い `wrangler.production.toml` が残っていたら消してよい（もう使わない）。
 
 以前は `DISCORD_PUBLIC_KEY` と `ADMIN_USER_IDS` を `[vars]`（平文の変数）で入れていた。新しい `wrangler.toml` でそのままデプロイすると、この2つが消えて、Secret を入れるまで全リクエストが 401 になり受付が止まる。
 デプロイと同時に Secret を入れる（`--secrets-file`。同じ版に入るので、止まる時間がない）。
