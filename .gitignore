@@ -3,9 +3,8 @@ node_modules
 config.json
 config_*.json
 .vscode
-serverless/wrangler.toml
-serverless/wrangler.production.toml
 serverless/.dev.vars
+serverless/.env*
 serverless/.wrangler
 serverless/dist
 serverless/conferences.sql

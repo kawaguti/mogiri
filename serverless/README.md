@@ -8,7 +8,7 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
 | | 本番 | テスト |
 |---|---|---|
 | Discord アプリ | **mogiri（Application ID `961867459093225502`）** | mogiri-test |
-| Worker / D1 | `mogiri`（`--config wrangler.production.toml`） | `mogiri-test`（`wrangler.toml`） |
+| Worker / D1 | `mogiri`（wrangler に `--env production` を付ける） | `mogiri-test`（何も付けない） |
 | Cloudflare アカウント | 管理担当の個人アカウント（団体アカウントができたら移す） | 同じ個人アカウント |
 
 - Developer Portal には「mogiri」という名前のアプリが **2つ** ある。本番は Application ID `961867459093225502` のほう（サーバーに入っているのもこちら）。もう一方には Interactions Endpoint URL を設定しないこと
@@ -60,7 +60,39 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
 - `scripts/import-config.mjs` … 今の config.json から D1 用の SQL を作る（キーは出力しない）
 - `scripts/import-checkins.mjs` … 受付チャンネルの過去の記録を D1 用の SQL にする（何度実行しても重複しない）。`[カンファレンス名]` のない古い記録は `--conference` を付けたときだけ取り込むが、Gateway 版の `/mogiri-check` がテスト用注文番号で出した投稿も同じ文面なので、付けるときはテスト用注文番号の分が数に入ることに注意
 - `scripts/check-config.mjs` … config.json が移せるか、テスト用注文番号が形式チェックを通るかを、値を出さずに確かめる
-- `wrangler.example.toml` … 設定の雛形（`wrangler.toml` にコピーして使う。gitignore 済み）
+- `scripts/deploy.mjs` … デプロイ先のアカウント（`CLOUDFLARE_ACCOUNT_ID`）が指定されているかを確かめてから `wrangler deploy` する（`npm run deploy` / `npm run deploy:production`）
+- `wrangler.toml` … Worker の設定。どの環境でも同じ値だけを書く（下の「設定の置き場所」）
+
+## 設定の置き場所
+
+公開リポジトリには、環境ごとに違う値（アカウント ID、D1 の ID、Public Key、管理者の ID）を入れない。設定ファイルを人から人へ渡すこともしない。
+
+| 値 | 置き場所 | 変えるとき |
+|---|---|---|
+| Worker と D1 の名前、互換性の日付など | `wrangler.toml`（Git に入れる）。テスト用は何も付けず、本番は `[env.production]` | コードと一緒にコミットしてデプロイ |
+| どの Cloudflare アカウントか | 各自の `serverless/.env` に `CLOUDFLARE_ACCOUNT_ID=<アカウント ID>`（Git に入れない）。wrangler が自動で読む | 各自で書く。アカウント ID は `npx wrangler whoami` かダッシュボードで分かる |
+| `DISCORD_PUBLIC_KEY`（Discord アプリの Public Key） | Cloudflare の Secret | `npx wrangler secret put DISCORD_PUBLIC_KEY`。デプロイは要らない |
+| `ADMIN_USER_IDS`（`/mogiri-admin` を使える Discord ユーザー ID、カンマ区切り） | Cloudflare の Secret | `npx wrangler secret put ADMIN_USER_IDS`。デプロイは要らない |
+| `DISCORD_BOT_TOKEN`、`PRETIX_KEY_xxx` | Cloudflare の Secret | `npx wrangler secret put ...` |
+| `MOGIRI_RESPONSE`、`PRETIX_ALLOWED_ORIGINS`、`CHECKIN_MAX_ATTEMPTS`、`CHECKIN_ATTEMPT_WINDOW_SECONDS` | コードの既定値（`/mogiri` の案内、`https://pretix.eu`、5回、600秒） | 変えたいときは Secret に同じ名前で入れると、そちらが使われる |
+
+- D1 は `database_name` だけで探す。**同じ名前の D1 がそのアカウントに見つからないと、`wrangler deploy` は空の D1 を黙って作る**。アカウントを取り違えると空の受付記録で動き出すので、デプロイは必ず `npm run deploy`（テスト用）/ `npm run deploy:production`（本番）で行う。`CLOUDFLARE_ACCOUNT_ID` がないと止まる
+- Secret（`DISCORD_PUBLIC_KEY` と `ADMIN_USER_IDS` を含む）はデプロイで上書きされない。ダッシュボードで「変数」（平文）として足した値は、次のデプロイで消える
+- Secret の値はダッシュボードでも読めない。今の値を確かめたいときは、入れ直す
+- `serverless/.env` には `CLOUDFLARE_ACCOUNT_ID` だけを書く（API トークンなどは書かない）。`.dev.vars` がないと、`wrangler dev` は `.env` の中身を手元の Worker の Secret として読み込む。`wrangler dev` で使う値は `.dev.vars` に書く
+
+### 古い形（vars と wrangler.production.toml）から移す（2026-10-28 に mogiri-test と本番の両方で済み）
+
+記録として残す。手元に古い `wrangler.production.toml` が残っていたら消してよい（もう使わない）。
+
+以前は `DISCORD_PUBLIC_KEY` と `ADMIN_USER_IDS` を `[vars]`（平文の変数）で入れていた。新しい `wrangler.toml` でそのままデプロイすると、この2つが消えて、Secret を入れるまで全リクエストが 401 になり受付が止まる。
+デプロイと同時に Secret を入れる（`--secrets-file`。同じ版に入るので、止まる時間がない）。
+
+1. 2つの値を書いた JSON ファイルを **リポジトリの外** に作る（`{"DISCORD_PUBLIC_KEY": "...", "ADMIN_USER_IDS": "...,..."}`）。値を画面やチャットに出さない
+2. `npm run deploy -- --secrets-file <そのファイル>`（本番は `npm run deploy:production -- --secrets-file <そのファイル>`）
+3. すぐにファイルを消す
+4. `npx wrangler secret list`（本番は `--env production`）に2つが出ること、Discord で `/mogiri` が応答し `/mogiri-admin list` が使えることを確かめる
+5. テスト用 → 本番の順に行う。本番が終わったら、手元の `serverless/wrangler.production.toml` を消し、`.gitignore` の `serverless/wrangler.production.toml` の行も消す
 
 ## 依存とサプライチェーン対策
 
@@ -77,6 +109,8 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
   ```
 
 ## テスト
+
+どの変更のあとに何を確かめるかは [TESTING.md](TESTING.md)。自動テストは次のとおり。
 
 ```bash
 npm run test:serverless
@@ -100,12 +134,11 @@ Worker 自体は `wrangler dev` で手元の Workers ランタイム（workerd�
 
 ```bash
 cd serverless
-cp wrangler.example.toml wrangler.toml
 npx wrangler d1 execute mogiri-test --local --file=schema.sql
-npx wrangler dev --var DISCORD_PUBLIC_KEY:<公開鍵>
+npx wrangler dev
 ```
 
-テスト用アプリの Bot トークンなどは `serverless/.dev.vars`（gitignore 済み）に `DISCORD_BOT_TOKEN=...` の形で書く。
+`DISCORD_PUBLIC_KEY`、`ADMIN_USER_IDS`、テスト用アプリの Bot トークンなどは `serverless/.dev.vars`（gitignore 済み）に `DISCORD_BOT_TOKEN=...` の形で書く。
 トンネルを使う場合は、表示された URL を **テスト用アプリ** の Interactions Endpoint URL に入れる。そのあとは下の手順4と同じ。
 
 ## テスト用アプリでの動作確認の手順
@@ -124,17 +157,23 @@ npx wrangler dev --var DISCORD_PUBLIC_KEY:<公開鍵>
 cd serverless
 npm ci --ignore-scripts
 npx wrangler login
-npx wrangler d1 create mogiri-test
+npx wrangler whoami
 ```
 
-`wrangler.example.toml` を `wrangler.toml` にコピーし、`database_id`、`DISCORD_PUBLIC_KEY`（テスト用アプリのもの）、`ADMIN_USER_IDS` を書き換える。
+`whoami` に出たアカウント ID を、`serverless/.env` に `CLOUDFLARE_ACCOUNT_ID=<アカウント ID>` と書く（gitignore 済み）。
 
 ```bash
+npx wrangler d1 create mogiri-test
 npx wrangler d1 execute mogiri-test --remote --file=schema.sql
+npm run deploy
+npx wrangler secret put DISCORD_PUBLIC_KEY
+npx wrangler secret put ADMIN_USER_IDS
 npx wrangler secret put DISCORD_BOT_TOKEN
 npx wrangler secret put PRETIX_KEY_SCRUMGATHERING
-npx wrangler deploy
 ```
+
+- `d1 create` が `database_id` を `wrangler.toml` に書き足そうとしたら断る（またはコミットしない）。名前だけで見つかる
+- `DISCORD_PUBLIC_KEY` はテスト用アプリのもの、`ADMIN_USER_IDS` は自分の Discord ユーザー ID
 
 最後に表示される URL（`https://mogiri-test.<アカウント>.workers.dev`）を控える。
 
@@ -150,23 +189,7 @@ $env:DISCORD_BOT_TOKEN = "<テスト用アプリの Bot トークン>"
 node scripts/register-commands.mjs <テスト用サーバー ID>
 ```
 
-表示される `application:` がテスト用アプリの名前になっていることを確かめる。そのうえで、Discord で次を試す。
-
-- [ ] `/mogiri` … 案内が返る
-- [ ] `/mogiri-admin add name:rsgt2027 role:RSGT2027参加者 organizer:<organizer> event:<slug> key_secret:PRETIX_KEY_SCRUMGATHERING test_order:<テスト用注文番号>` … 追加され、数秒後に `/rsgt2027` が使えるようになる
-- [ ] `/mogiri-admin list` … 本人にだけ一覧が見える
-- [ ] `/mogiri-check` … ロールと Pretix の確認結果が出る。チャンネルに注文番号が出ていない
-- [ ] `/rsgt2027 ordernumber:<有効な注文番号>` … 本人にだけ「認証が完了」が見え、ロールが付き、チャンネルに `@自分 のチェックインを確認し… (1/N枚目)` が出る（注文番号は出ない）
-- [ ] 別のユーザーで同じ注文番号 … `(2/N枚目)` になる
-- [ ] ロールを持ったまま再実行 … 「すでに…ロールをお持ちでした」
-- [ ] 存在しない注文番号 … 本人には失敗が、チャンネルには番号なしの失敗が出る
-- [ ] 入場券を含まない注文 … 「入場券ではない」
-- [ ] 存在しない注文番号を続けて6回 … 6回目は「確認の回数が上限…に達しました」になり、チャンネルには投稿されない
-- [ ] `ADMIN_USER_IDS` にないユーザーの `/mogiri-admin` … 拒否される
-- [ ] `/mogiri-admin remove name:rsgt2027` … `/rsgt2027` が消える
-- [ ] Bot のロールを参加者ロールより下に移してから受付 … 「ロールを付けられませんでした」になり、チェックインとして数えられない（確認後、順番を戻す）
-- [ ] コールドスタート … 15分以上だれも使っていない状態で `/mogiri` と受付を実行し、「アプリケーションが応答しませんでした」にならない（`npx wrangler tail` を開いておくと時刻が分かる）
-- [ ] `npx wrangler tail` でエラーが出ていない
+表示される `application:` がテスト用アプリの名前になっていることを確かめる。そのうえで、[TESTING.md](TESTING.md) の「B. テスト環境での全項目」を行う。
 
 ### 5. 切り戻しの練習（テスト用アプリで一度だけ）
 
@@ -194,7 +217,7 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
 テスト用の `mogiri-test` は、これまでどおり個人のアカウントに置いたままにする。
 
 > 団体アカウントが用意できるまでは、本番も管理担当の個人アカウントに置き、運営メンバーをそのアカウントのメンバーに追加して運用する。
-> その間も `wrangler.production.toml` に（個人アカウントの）`account_id` を書き、`--config` で `mogiri-test` と分けて操作する。
+> その間も、本番の操作には `--env production` を付けて `mogiri-test` と分けて操作する。
 > 団体アカウントに移すときは、新しいアカウントに Worker と D1 を作り直し、`wrangler d1 export` で D1 の中身を移し、Secret を入れ直し、本番アプリの Interactions Endpoint URL を新しい URL に替える。
 
 ### アカウントとメンバー
@@ -203,9 +226,10 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
 |---|---|---|
 | 団体のメールアドレス（持ち主） | Super Administrator | アカウントの持ち主。ふだんの作業には使わない |
 | 管理担当の個人アカウント（1人） | Super Administrator | 持ち主が使えなくなったときに、アカウントを取り戻せるようにもう1人置く |
-| カンファレンスを追加する運営メンバーの個人アカウント | Workers と D1 を編集できるロール（Workers Platform Admin など） | Pretix の Secret の追加と、デプロイ・D1 の操作ができれば足りる |
+| カンファレンスを追加する運営メンバーの個人アカウント | Developer Platform Editor | Secret の追加と、デプロイ・D1 の操作ができれば足りる（作成・削除はできない） |
 
 - Cloudflare のロール名は変わることがあるので、招待の画面で「Workers Scripts と D1 を編集できる」ことを確かめて選ぶ。請求やDNSの権限は要らない
+- Developer Platform Editor では、D1 の概要のグラフ（クエリー数）が「not authorized for that account」になることがある。中身はコンソールタブか `npx wrangler d1 execute` で見る
 - 持ち主のアカウントのログイン情報と二段階認証のバックアップコードは、団体で共有している保管場所に置く（個人のパソコンだけに置かない）
 
 ### 二段階認証
@@ -216,28 +240,24 @@ node scripts/register-commands.mjs <テスト用サーバー ID>
 
 ### wrangler がどのアカウントを使うかを固定する
 
-個人のアカウント（`mogiri-test`）と団体のアカウント（本番）の両方に入れる人は、wrangler がどちらを使うかを取り違えやすい。
-**本番用の設定ファイル `wrangler.production.toml` に `account_id` を必ず書き、本番の操作には毎回 `--config wrangler.production.toml` を付ける。**
+複数のアカウントに入れる人は、wrangler がどれを使うかを取り違えやすい。
+**`serverless/.env` に `CLOUDFLARE_ACCOUNT_ID` を必ず書き、本番の操作には毎回 `--env production` を付ける。**
 
 1. `npx wrangler whoami` で、いまログインしているユーザーと、使えるアカウントの一覧（アカウント ID 付き）を確かめる。別のユーザーでログインしていたら `npx wrangler logout` → `npx wrangler login`
-2. `wrangler.example.toml` を `wrangler.production.toml` にコピーし、次を書き換える（このファイルは .gitignore 済み）
-   - `account_id` … 団体アカウントの ID（コメントを外す）
-   - `name` と `database_name` … `mogiri`
-   - `database_id` … 本番の D1 を作ったときの出力
-   - `DISCORD_PUBLIC_KEY` … 本番の Discord アプリの Public Key
-   - `ADMIN_USER_IDS` … `/mogiri-admin` を使う運営メンバー全員の Discord ユーザー ID（カンマ区切り）
-3. 本番の操作は、すべて `--config wrangler.production.toml` を付けて実行する
+2. `serverless/.env` に `CLOUDFLARE_ACCOUNT_ID=<本番のアカウント ID>` と書く（gitignore 済み）。テスト用と本番が別のアカウントになったら、本番の ID は `serverless/.env.production` に書く（`--env production` のときだけ読まれ、`.env` より優先される）
+3. 本番の操作は、すべて `--env production` を付けて実行する
 
 ```bash
-npx wrangler deploy --config wrangler.production.toml
-npx wrangler secret put PRETIX_KEY_XXX --config wrangler.production.toml
-npx wrangler d1 execute mogiri --remote --config wrangler.production.toml --command "SELECT COUNT(*) FROM checkins"
-npx wrangler tail mogiri --config wrangler.production.toml
+npm run deploy:production
+npx wrangler secret put PRETIX_KEY_XXX --env production
+npx wrangler secret put ADMIN_USER_IDS --env production
+npx wrangler d1 execute mogiri --remote --env production --command "SELECT COUNT(*) FROM checkins"
+npx wrangler tail --env production
 ```
 
-- `--config` を付け忘れると、`wrangler.toml` の `mogiri-test` に対して実行される。本番に反映されないときは、まず付け忘れを疑う
-- `account_id` を書かずにおくと、ログイン中のユーザーが使えるアカウントから選ばれ、個人のアカウントに本番を作ってしまうことがある
-- 環境変数 `CLOUDFLARE_ACCOUNT_ID` を設定していると、そちらが優先される。本番の操作の前に設定していないことを確かめる
+- `--env production` を付け忘れると、`mogiri-test` に対して実行される。本番に反映されないときは、まず付け忘れを疑う
+- 何も付けずに実行すると、wrangler が「環境が指定されていない」という警告を出す。テスト用に対して実行するときは気にしなくてよい（消したいときは `--env ""` を付ける）
+- `CLOUDFLARE_ACCOUNT_ID` を書かずにおくと、ログイン中のユーザーが使えるアカウントから選ばれ、別のアカウントに空の D1 と Worker を作ってしまうことがある
 
 ### アカウントを移すと変わるもの
 
@@ -250,11 +270,11 @@ npx wrangler tail mogiri --config wrangler.production.toml
 ## 本番への切り替え手順（イベントのない時期に行う）
 
 前提: テスト用アプリで上のチェックリストがすべて通っていること。本番用の Worker と D1 を作るときは、事前に関係者の了承を取る。
-本番の操作は、すべて団体アカウントに対して `--config wrangler.production.toml` を付けて行う（上の「本番用の Cloudflare アカウント」を参照）。以下では `--config` を省いて書いている。
+本番の操作は、すべて団体アカウントに対して `--env production` を付けて行う（上の「本番用の Cloudflare アカウント」を参照）。以下では `--env production` を省いて書いている。
 
 1. **本番用の Worker と D1 を作る**
-   `npx wrangler whoami` で団体アカウントが見えることを確かめ、`wrangler.production.toml` を用意する。
-   `npx wrangler d1 create mogiri` → `database_id` を `wrangler.production.toml` に書く → `schema.sql` を適用 → `npx wrangler secret put DISCORD_BOT_TOKEN`（本番の Bot トークン）→ `npx wrangler deploy`
+   `npx wrangler whoami` で団体アカウントが見えることを確かめ、`serverless/.env`（または `.env.production`）の `CLOUDFLARE_ACCOUNT_ID` を団体アカウントの ID にする。
+   `npx wrangler d1 create mogiri`（`database_id` は `wrangler.toml` に書かない）→ `schema.sql` を適用 → `npm run deploy:production` → `npx wrangler secret put` で `DISCORD_PUBLIC_KEY`（本番アプリの Public Key）、`ADMIN_USER_IDS`、`DISCORD_BOT_TOKEN`（本番の Bot トークン）を入れる
 2. **カンファレンス設定を移す**
    まず `node scripts/check-config.mjs ../config.json` で、全カンファレンスが移せるか・テスト用注文番号が形式チェックを通るかを確かめる（値は表示されない）。
    `node scripts/import-config.mjs ../config.json > conferences.sql` → `npx wrangler d1 execute mogiri --remote --file=conferences.sql`。

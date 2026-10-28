@@ -9,6 +9,7 @@ export const InteractionType = { PING: 1, APPLICATION_COMMAND: 2 };
 export const ResponseType = { PONG: 1, CHANNEL_MESSAGE: 4, DEFERRED_CHANNEL_MESSAGE: 5 };
 const EPHEMERAL = 1 << 6;
 const MAX_CONTENT = 2000;
+const DEFAULT_MOGIRI_RESPONSE = 'mogiri（サーバーレス版）です。/<カンファレンス名> ordernumber:<注文番号> で受付できます。';
 
 const ephemeral = content => ({ type: ResponseType.CHANNEL_MESSAGE, data: { content, flags: EPHEMERAL, allowed_mentions: { parse: [] } } });
 const deferred = ({ hidden = false } = {}) => ({ type: ResponseType.DEFERRED_CHANNEL_MESSAGE, data: hidden ? { flags: EPHEMERAL } : {} });
@@ -71,7 +72,7 @@ export function routeInteraction(interaction, deps) {
 
     const name = interaction.data?.name;
     if (name === 'mogiri') {
-        return { response: { type: ResponseType.CHANNEL_MESSAGE, data: { content: deps.env.MOGIRI_RESPONSE || 'mogiri です。', allowed_mentions: { parse: [] } } } };
+        return { response: { type: ResponseType.CHANNEL_MESSAGE, data: { content: deps.env.MOGIRI_RESPONSE || DEFAULT_MOGIRI_RESPONSE, allowed_mentions: { parse: [] } } } };
     }
     if (!interaction.guild_id || !interaction.member) {
         return { response: ephemeral('サーバー内のチャンネルで実行してください。') };
@@ -205,7 +206,7 @@ export async function runMogiriCheck(interaction, { env, store, discord, checkPr
         lines.push(conference.discord_role + (role && memberRoles.includes(role.id) ? 'のロールをお持ちでした！' : 'のロールをお持ちではありませんでした！'));
 
         if (!conference.pretix_private_key) {
-            lines.push(`⚠️ Secret ${conference.pretix_key_secret} が設定されていません`);
+            lines.push(`⚠️ Secret \`${conference.pretix_key_secret}\` が設定されていません`);
         }
         else if (!conference.ordernumber_for_test) {
             lines.push('ℹ️ テスト用の注文番号が未設定のため、Pretix の確認は省略しました');
@@ -241,7 +242,7 @@ export async function runAdmin(interaction, deps) {
         const conferences = await store.listConferences(guildId);
         if (conferences.length === 0) return 'このサーバーにはカンファレンスが登録されていません。';
         return conferences.map(c =>
-            `• /${c.name} → ロール「${c.discord_role}」 ${c.pretix_base_url} ${c.pretix_organizer}/${c.pretix_event_slug} (${c.pretix_key_secret}${env[c.pretix_key_secret] ? '' : ' ⚠️未設定'})`,
+            `• /${c.name} → ロール「${c.discord_role}」 <${c.pretix_base_url.replace(/\/+$/, '')}/${c.pretix_organizer}/${c.pretix_event_slug}/> (\`${c.pretix_key_secret}\`${env[c.pretix_key_secret] ? '' : ' ⚠️未設定'})`,
         ).join('\n');
     }
 
@@ -255,7 +256,8 @@ export async function runAdmin(interaction, deps) {
             pretix_organizer: opt('organizer'),
             pretix_event_slug: opt('event'),
             pretix_key_secret: opt('key_secret'),
-            ordernumber_for_test: opt('test_order') || null,
+            // 受付と同じく、全角・小文字・先頭の # を直してから確かめる
+            ordernumber_for_test: normalizeOrderNumber(opt('test_order')) || null,
         };
         const error = validateConference(conference, allowedPretixOrigins(env));
         if (error) return '❌ ' + error;
@@ -266,7 +268,7 @@ export async function runAdmin(interaction, deps) {
         }
         await store.upsertConference(conference);
         const conferences = await syncCommands(interaction, deps);
-        const warning = env[conference.pretix_key_secret] ? '' : `\n⚠️ Secret ${conference.pretix_key_secret} がまだ設定されていません。wrangler secret put ${conference.pretix_key_secret} で設定してください。`;
+        const warning = env[conference.pretix_key_secret] ? '' : `\n⚠️ Secret \`${conference.pretix_key_secret}\` がまだ設定されていません。\`npx wrangler secret put ${conference.pretix_key_secret}\`（本番は \`--env production\` を付ける）で設定してください。`;
         return `✅ /${conference.name} を${existing ? '更新' : '追加'}しました（このサーバーのカンファレンス: ${conferences.length}件）。${warning}`;
     }
 

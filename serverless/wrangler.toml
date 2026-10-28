@@ -1,0 +1,31 @@
+# mogiri の Worker の設定。どの環境でも同じ値だけを書き、環境ごとに違う値は書かない。
+#
+# 環境ごとに違う値の置き場所:
+#   どの Cloudflare アカウントか  … serverless/.env の CLOUDFLARE_ACCOUNT_ID（Git に入れない。README 参照）
+#   DISCORD_PUBLIC_KEY            … Cloudflare の Secret（Discord アプリの Public Key）
+#   ADMIN_USER_IDS                … Cloudflare の Secret（/mogiri-admin を使える Discord ユーザー ID、カンマ区切り）
+#   DISCORD_BOT_TOKEN             … Cloudflare の Secret（Bot トークン）
+#   PRETIX_KEY_xxx                … Cloudflare の Secret（Pretix の API トークン）
+#
+# D1 は database_name だけで探す（ID は書かない）。同じ名前の D1 が見つからないと、
+# wrangler deploy が空の D1 を黙って作るので、デプロイは npm run deploy / deploy:production で行う。
+#
+# 何も付けずに実行するとテスト用（mogiri-test）、--env production を付けると本番（mogiri）。
+
+name = "mogiri-test"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "mogiri-test"
+
+[observability]
+enabled = true
+
+[env.production]
+name = "mogiri"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "mogiri"
