@@ -469,6 +469,59 @@ describe('serverless worker', function() {
         });
     });
 
+    describe('/mogiri-admin lookup', function() {
+        const ATTENDEE = '666666666666666666';
+        const lookup = ({ member = { roles: [ROLE_ID] }, userId = ATTENDEE } = {}) => {
+            const interaction = commandInteraction('mogiri-admin', {
+                options: [{ type: 1, name: 'lookup', options: [{ name: 'user', type: 6, value: userId }] }],
+            });
+            interaction.data.resolved = member ? { members: { [userId]: member } } : {};
+            return interaction;
+        };
+
+        beforeEach(async function() {
+            // 同じ注文をほかの人が先に1枚使っている
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: '1' });
+            await store.recordCheckin({ guildId: GUILD_ID, conference: 'rsgt2027', orderNumber: 'AB12C', userId: ATTENDEE });
+            // 別のサーバーの記録は出さない
+            await store.recordCheckin({ guildId: OTHER_GUILD_ID, conference: 'other', orderNumber: 'ZZ00Z', userId: ATTENDEE });
+        });
+
+        it('shows the check-ins, the role and the attempts of the chosen user only to the admin', async function() {
+            await store.recordAttempt(ATTENDEE, 600, 5);
+            const { body } = await send(lookup());
+            body.should.eql({ type: 5, data: { flags: 64 } });
+            const text = discord.edits()[0];
+            text.should.containEql(`<@${ATTENDEE}>`);
+            text.should.match(/• \/rsgt2027 \d{4}\/\d{2}\/\d{2} \d{2}:\d{2} 注文 `AB12C`（2枚目）/);
+            text.should.not.containEql('ZZ00Z');
+            text.should.containEql('/rsgt2027 「RSGT2027参加者」: あり');
+            text.should.containEql('1回 / 上限 5回');
+            text.should.not.containEql('上限に達しています');
+        });
+
+        it('points out a user who hit the attempt limit and has no role', async function() {
+            for (let i = 0; i < 5; i++) await store.recordAttempt('777777777777777777', 600, 5);
+            await send(lookup({ userId: '777777777777777777', member: { roles: [] } }));
+            const text = discord.edits()[0];
+            text.should.containEql('このサーバーでの記録はありません');
+            text.should.containEql('どの参加者ロールも持っていません');
+            text.should.containEql('上限に達しています');
+        });
+
+        it('says so when the user is not a member of the server', async function() {
+            await send(lookup({ member: null }));
+            const text = discord.edits()[0];
+            text.should.containEql('このサーバーのメンバーではありません');
+            text.should.containEql('/rsgt2027 「RSGT2027参加者」: なし');
+        });
+
+        it('does not mention anyone in the reply', async function() {
+            await send(lookup());
+            discord.calls.filter(c => c[0] === 'sendMessage').should.have.length(0);
+        });
+    });
+
     describe('/mogiri-admin analytics', function() {
         const analytics = name => commandInteraction('mogiri-admin', {
             options: [{ type: 1, name: 'analytics', options: name ? [{ name: 'name', type: 3, value: name }] : [] }],

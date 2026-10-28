@@ -1,6 +1,7 @@
 // スラッシュコマンドの定義と、カンファレンス設定の入力チェック
 
 const STRING = 3;
+const USER = 6;
 const SUB_COMMAND = 1;
 const ADMINISTRATOR = String(1 << 3);
 
@@ -32,6 +33,10 @@ export const BASE_COMMANDS = [
                 options: [{ type: STRING, name: 'name', description: 'コマンド名', required: true }],
             },
             { type: SUB_COMMAND, name: 'sync', description: 'このサーバーのコマンド登録を D1 の内容に合わせ直します' },
+            {
+                type: SUB_COMMAND, name: 'lookup', description: '参加者の受付の記録・ロール・試行回数を表示します（問い合わせ対応用）',
+                options: [{ type: USER, name: 'user', description: '調べる参加者', required: true }],
+            },
             {
                 type: SUB_COMMAND, name: 'analytics', description: '受付枚数を表示します（name を指定すると Pretix の販売枚数も）',
                 options: [{ type: STRING, name: 'name', description: 'コマンド名。指定すると Pretix の販売枚数と並べる' }],
