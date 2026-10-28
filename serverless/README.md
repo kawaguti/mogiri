@@ -108,6 +108,8 @@ Gateway（WebSocket の常時接続）を使わないので、常時起動のサ
 
 ## テスト
 
+どの変更のあとに何を確かめるかは [TESTING.md](TESTING.md)。自動テストは次のとおり。
+
 ```bash
 npm run test:serverless
 ```
@@ -185,23 +187,7 @@ $env:DISCORD_BOT_TOKEN = "<テスト用アプリの Bot トークン>"
 node scripts/register-commands.mjs <テスト用サーバー ID>
 ```
 
-表示される `application:` がテスト用アプリの名前になっていることを確かめる。そのうえで、Discord で次を試す。
-
-- [ ] `/mogiri` … 案内が返る
-- [ ] `/mogiri-admin add name:rsgt2027 role:RSGT2027参加者 organizer:<organizer> event:<slug> key_secret:PRETIX_KEY_SCRUMGATHERING test_order:<テスト用注文番号>` … 追加され、数秒後に `/rsgt2027` が使えるようになる
-- [ ] `/mogiri-admin list` … 本人にだけ一覧が見える
-- [ ] `/mogiri-check` … ロールと Pretix の確認結果が出る。チャンネルに注文番号が出ていない
-- [ ] `/rsgt2027 ordernumber:<有効な注文番号>` … 本人にだけ「認証が完了」が見え、ロールが付き、チャンネルに `@自分 のチェックインを確認し… (1/N枚目)` が出る（注文番号は出ない）
-- [ ] 別のユーザーで同じ注文番号 … `(2/N枚目)` になる
-- [ ] ロールを持ったまま再実行 … 「すでに…ロールをお持ちでした」
-- [ ] 存在しない注文番号 … 本人には失敗が、チャンネルには番号なしの失敗が出る
-- [ ] 入場券を含まない注文 … 「入場券ではない」
-- [ ] 存在しない注文番号を続けて6回 … 6回目は「確認の回数が上限…に達しました」になり、チャンネルには投稿されない
-- [ ] `ADMIN_USER_IDS` にないユーザーの `/mogiri-admin` … 拒否される
-- [ ] `/mogiri-admin remove name:rsgt2027` … `/rsgt2027` が消える
-- [ ] Bot のロールを参加者ロールより下に移してから受付 … 「ロールを付けられませんでした」になり、チェックインとして数えられない（確認後、順番を戻す）
-- [ ] コールドスタート … 15分以上だれも使っていない状態で `/mogiri` と受付を実行し、「アプリケーションが応答しませんでした」にならない（`npx wrangler tail` を開いておくと時刻が分かる）
-- [ ] `npx wrangler tail` でエラーが出ていない
+表示される `application:` がテスト用アプリの名前になっていることを確かめる。そのうえで、[TESTING.md](TESTING.md) の「B. テスト環境での全項目」を行う。
 
 ### 5. 切り戻しの練習（テスト用アプリで一度だけ）
 
